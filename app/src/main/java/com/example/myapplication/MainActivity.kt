@@ -178,7 +178,8 @@ fun MainLayoutScreen(modifier: Modifier = Modifier) {
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -188,6 +189,7 @@ fun MainLayoutScreen(modifier: Modifier = Modifier) {
                     .padding(bottom = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // Campo display comida ("POR HACER")
                 OutlinedTextField(
                     value = campo1,
                     onValueChange = { campo1 = it },
@@ -196,6 +198,7 @@ fun MainLayoutScreen(modifier: Modifier = Modifier) {
                     shape = RoundedCornerShape(4.dp)
                 )
 
+                // Campo display RATIO ("POR HACER")
                 OutlinedTextField(
                     value = campo2,
                     onValueChange = { campo2 = it },
