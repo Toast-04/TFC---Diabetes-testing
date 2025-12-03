@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,6 +15,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -107,22 +110,15 @@ fun MyApp(isDarkTheme: Boolean, onThemeChange: (Boolean) -> Unit) {
             }
         }
     ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { },
-                    navigationIcon = {
-                        IconButton(
+        Scaffold(topBar = { TopAppBar(title = {}, navigationIcon = { IconButton(
                             onClick = {
                                 scope.launch {
                                     if (drawerState.isClosed) drawerState.open()
                                     else drawerState.close()
-                                }
-                            }
+                                }}
                         ) {
                             Icon(Icons.Filled.Menu, contentDescription = "Abrir menú")
-                        }
-                    },
+                        } },
                     actions = {
                         Surface(
                             modifier = Modifier
@@ -143,13 +139,10 @@ fun MyApp(isDarkTheme: Boolean, onThemeChange: (Boolean) -> Unit) {
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onBackground
                                 )
-                            }
-                        }
-                    },
+                            } } },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface
-                    )
-                )
+                    ))
             },
             floatingActionButton = {
                 BotonMenuCircular()
@@ -163,87 +156,191 @@ fun MyApp(isDarkTheme: Boolean, onThemeChange: (Boolean) -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainLayoutScreen(modifier: Modifier = Modifier) {
+    // Estado del campo de gramos
     var campo1 by remember { mutableStateOf("") }
-    var campo2 by remember { mutableStateOf("") }
-    var campoGrande by remember { mutableStateOf("") }
-    var campoAncho by remember { mutableStateOf("") }
-    var campoMediano by remember { mutableStateOf("") }
+
+    // Dropdown principal (arriba)
+    var expandedPrincipal by remember { mutableStateOf(false) }
+    var campoDropdownPrincipal by remember { mutableStateOf("") }
+
+    // Dropdowns de la fila
+    var expanded1 by remember { mutableStateOf(false) }
+    var campoDropdown1 by remember { mutableStateOf("") }
+    var expanded2 by remember { mutableStateOf(false) }
+    var campoDropdown2 by remember { mutableStateOf("") }
+
+    val opciones = listOf("Opción 1", "Opción 2", "Opción 3")
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .padding(24.dp)
+            .pointerInput(Unit) {
+                detectTapGestures { keyboardController?.hide() }
+            }
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            // Dropdown principal (full width)
+            ExposedDropdownMenuBox(
+                expanded = expandedPrincipal,
+                onExpandedChange = { expandedPrincipal = !expandedPrincipal },
+                modifier = Modifier.fillMaxWidth()
             ) {
-                // Campo display comida ("POR HACER")
                 OutlinedTextField(
-                    value = campo1,
-                    onValueChange = { campo1 = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("Campo 1") },
-                    shape = RoundedCornerShape(4.dp)
+                    value = campoDropdownPrincipal,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Dropdown Principal") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedPrincipal) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
                 )
 
-                // Campo display RATIO ("POR HACER")
-                OutlinedTextField(
-                    value = campo2,
-                    onValueChange = { campo2 = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("Campo 2") },
-                    shape = RoundedCornerShape(4.dp)
-                )
+                ExposedDropdownMenu(
+                    expanded = expandedPrincipal,
+                    onDismissRequest = { expandedPrincipal = false }
+                ) {
+                    opciones.forEach { opcion ->
+                        DropdownMenuItem(
+                            text = { Text(opcion) },
+                            onClick = {
+                                campoDropdownPrincipal = opcion
+                                expandedPrincipal = false
+                            }
+                        )
+                    }
+                }
             }
-
-            OutlinedTextField(
-                value = campoGrande,
-                onValueChange = { campoGrande = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .padding(bottom = 16.dp),
-                placeholder = { Text("Campo grande") },
-                shape = RoundedCornerShape(4.dp),
-                maxLines = 4
-            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = campoAncho,
-                onValueChange = { campoAncho = it },
+            // Fila con dos dropdowns centrados y adaptativos
+            Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                placeholder = { Text("Campo ancho") },
-                shape = RoundedCornerShape(4.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp) // separación entre dropdowns
+            ) {
+                // Dropdown 1
+                ExposedDropdownMenuBox(
+                    expanded = expanded1,
+                    onExpandedChange = { expanded1 = !expanded1 },
+                    modifier = Modifier.weight(1f) // ocupa la mitad disponible
+                ) {
+                    OutlinedTextField(
+                        value = campoDropdown1,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Dropdown 1") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded1) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth() // asegura que llene el espacio de weight
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded1,
+                        onDismissRequest = { expanded1 = false }
+                    ) {
+                        opciones.forEach { opcion ->
+                            DropdownMenuItem(
+                                text = { Text(opcion) },
+                                onClick = {
+                                    campoDropdown1 = opcion
+                                    expanded1 = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Dropdown 2
+                ExposedDropdownMenuBox(
+                    expanded = expanded2,
+                    onExpandedChange = { expanded2 = !expanded2 },
+                    modifier = Modifier.weight(1f) // ocupa la otra mitad disponible
+                ) {
+                    OutlinedTextField(
+                        value = campoDropdown2,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Dropdown 2") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded2) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded2,
+                        onDismissRequest = { expanded2 = false }
+                    ) {
+                        opciones.forEach { opcion ->
+                            DropdownMenuItem(
+                                text = { Text(opcion) },
+                                onClick = {
+                                    campoDropdown2 = opcion
+                                    expanded2 = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Campo de gramos centrado
+            OutlinedTextField(
+                value = campo1,
+                onValueChange = { campo1 = it },
+                placeholder = { Text("Gramos") },
+                label = { Text("Gramos") },
+                shape = RoundedCornerShape(4.dp),
+                modifier = Modifier.width(250.dp)
             )
 
-            OutlinedTextField(
-                value = campoMediano,
-                onValueChange = { campoMediano = it },
+            Spacer(modifier = Modifier.height(72.dp))
+
+            Box(
                 modifier = Modifier
-                    .width(200.dp)
-                    .padding(bottom = 24.dp),
-                placeholder = { Text("Campo mediano") },
-                shape = RoundedCornerShape(4.dp)
-            )
+                    .width(250.dp)
+                    .height(100.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "RESULTADO",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            // Botón circular grande
+            Button(
+                onClick = { /* Acción del botón */ },
+                shape = RoundedCornerShape(50),
+                modifier = Modifier.size(120.dp)
+            ) {
+                Text("OK")
+            }
         }
     }
 }
+
+
+
+
+
+
 
 @Composable
 fun BotonMenuCircular() {
