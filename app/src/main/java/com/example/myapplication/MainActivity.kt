@@ -3,10 +3,10 @@ package com.example.myapplication
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -22,13 +22,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import androidx.navigation.NavController
 import androidx.navigation.compose.*
 import com.example.myapplication.ui.theme.AppTheme
-import kotlinx.coroutines.CoroutineScope
 
-
+// ================================================================
+// Main Activity
+// ================================================================
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,24 +57,30 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-// Clase que ejecuta la aplicacion
+
+// ================================================================
+// Composable principal de la app
+// ================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyApp(isDarkTheme: Boolean, onThemeChange: (Boolean) -> Unit) {
 
-    // Variables
-    val drawerState = rememberDrawerState(DrawerValue.Closed) // Barra lateral estado
-    val scope = rememberCoroutineScope() // Para abrir y cerrar la barra lateral (PRINCIPALMENTE)
-    val navController = rememberNavController() // Navcontroller
+    // ================================================================
+    // Variables necesarias
+    // ================================================================
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    val navController = rememberNavController()
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
+    var showInfo by remember { mutableStateOf(false) }
 
-    val currentBackStackEntry by navController.currentBackStackEntryAsState() // Pila de aplicaciones
-    val currentRoute = currentBackStackEntry?.destination?.route // Almacen de la ruta actual
-
-    // Creación del drawer (Barra lateral)
+    // ================================================================
+    // Drawer (Barra lateral)
+    // ================================================================
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            // Tamaño del size ajustable (NO TOCAR)
             ModalDrawerSheet(modifier = Modifier.width(300.dp)) {
                 DrawerContent(
                     isDarkTheme = isDarkTheme,
@@ -84,69 +92,100 @@ fun MyApp(isDarkTheme: Boolean, onThemeChange: (Boolean) -> Unit) {
             }
         }
     ) {
-        // Estructura principal del proyecto
+
+        // ================================================================
+        // Scaffold principal
+        // ================================================================
         Scaffold(
-            // TopBar principal (Cabecera)
+            // ================================================================
+            // TopBar condicional
+            // ================================================================
             topBar = {
-                // TopBar según la pantalla
                 when (currentRoute) {
-                    "configuracion" -> TopBarOpciones(navController, "Configuracion")
-                    "notificaciones" -> TopBarOpciones(navController, "Notificaciones")
-                    else -> TopBar { scope.launch { if (drawerState.isClosed) drawerState.open() else drawerState.close() } }
+                    "main" -> TopBar { scope.launch { drawerState.open() } }
+                    "configuracion" -> TopBarOpciones(navController, titulo = "Opciones")
+                    "notificaciones" -> TopBarOpciones(navController, titulo = "Notificaciones")
+                    else -> {
+                        TopBarOpciones(navController, titulo = "")
+                    } // Otras pantallas no muestran TopBarOpciones
                 }
             },
-            containerColor = MaterialTheme.colorScheme.background
-        ) { paddingValues ->
 
-            // BOX SUPERNECESARIO (SI LO QUITAS ROMPES EL CODIGO, DENTRO DE ROW TAMBIEN)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                // Navegación
-                NavHost(
-                    navController = navController,
-                    startDestination = "main",
-                    modifier = Modifier.padding(paddingValues)
-                ) {
-                    // Rutas del nav controller
-                    composable("main") { MainLayout() }
-                    composable("configuracion") { ConfiguracionScreen(navController) }
-                    composable("notificaciones") { NotificiacionesScreen(navController) }
-                    composable("informacion") { InformacionScreen() }
-                    composable("modo_receta") { ModoRecetaScreen() }
-                    composable("bajar_azucar") { BajarAzucarScreen() }
-                }
-                Box(modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)) {
-                    // Boton inferior derecho (BotonMenuCircular)
-                    if (currentRoute != "configuracion" && currentRoute != "notificaciones") {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(16.dp)
+            containerColor = MaterialTheme.colorScheme.background,
+
+            // ================================================================
+            // Botones flotantes solo en main
+            // ================================================================
+            floatingActionButton = {
+                if (currentRoute == "main") {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        // Botón inferior izquierdo → Overlay de información
+                        IconButton(
+                            onClick = { showInfo = !showInfo },
+                            modifier = Modifier.size(72.dp)
                         ) {
-                            BotonMenuInferior(navController)
+                            Icon(
+                                painter = painterResource(id = R.drawable.signo_de_interrogaci_n_icono),
+                                contentDescription = "Info",
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
                         }
+
+                        // Botón inferior derecho → Menú circular
+                        BotonMenuInferior(navController)
                     }
-                    // Boton inferior izquierdo
-                    if (currentRoute != "configuracion" && currentRoute != "notificaciones") {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomStart)
-                                .padding(16.dp)
-                        ) {
-                            BotonInfoInferior(navController)
-                        }
+                }
+            },
+            floatingActionButtonPosition = FabPosition.End,
+
+            // ================================================================
+            // Contenido del Scaffold
+            // ================================================================
+            content = { paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ) {
+                    // ================================================================
+                    // Navegación
+                    // ================================================================
+                    NavHost(
+                        navController = navController,
+                        startDestination = "main",
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        composable("main") { MainLayout() }
+                        composable("configuracion") { ConfiguracionScreen(navController = navController, isDarkTheme = isDarkTheme, onThemeChange = onThemeChange) }
+                        composable("notificaciones") { NotificiacionesScreen(navController) }
+                        composable("informacion") { InformacionScreen {} }
+                        composable("modo_receta") { ModoRecetaScreen() }
+                        composable("bajar_azucar") { BajarAzucarScreen() }
+                    }
+
+                    // ================================================================
+                    // Overlay de información
+                    // ================================================================
+                    if (showInfo) {
+                        InformacionScreen(onClose = { showInfo = false })
                     }
                 }
             }
-        }
+        )
     }
 }
 
+
+// ================================================================
+// Drawer Content
+// ================================================================
 @Composable
 private fun DrawerContent(
     isDarkTheme: Boolean,
@@ -165,7 +204,14 @@ private fun DrawerContent(
         Text("Menú Lateral", style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Boton del drawer
+        DrawerButton(
+            icon = painterResource(id = R.drawable.notificaciones),
+            text = "Configuración",
+            onClick = {
+                scope.launch { drawerState.close() }
+                navController.navigate("configuracion")
+            }
+        )
 
         DrawerButton(
             icon = painterResource(id = R.drawable.notificaciones),
@@ -176,16 +222,15 @@ private fun DrawerContent(
             }
         )
 
-
-        Column (modifier = Modifier.fillMaxHeight(),
+        Column(
+            modifier = Modifier.fillMaxHeight(),
             verticalArrangement = Arrangement.Bottom
-        ){
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Switch modo oscuro en el drawer (menu lateral)
                 Text("Modo Oscuro")
                 Switch(
                     checked = isDarkTheme,
@@ -196,14 +241,15 @@ private fun DrawerContent(
     }
 }
 
+// ================================================================
 // Metodo que define el boton drawer (desplegable lateral)
+// ================================================================
 @Composable
 private fun DrawerButton(
     icon: Painter,
     text: String,
     onClick: () -> Unit
 ) {
-    // Boton del drawer
     Button(
         onClick = onClick,
         modifier = Modifier
@@ -216,11 +262,7 @@ private fun DrawerButton(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(
-                icon,
-                contentDescription = text,
-                modifier = Modifier.size(24.dp)
-            )
+            Icon(icon, contentDescription = text, modifier = Modifier.size(24.dp))
 
             Spacer(modifier = Modifier.width(24.dp))
 
@@ -233,24 +275,23 @@ private fun DrawerButton(
         }
     }
 }
-// Topbar para todas las pantallas (menos opciones)
+
+// ================================================================
+// TopBar para todas las pantallas (menos opciones)
+// ================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(onMenuClick: () -> Unit) {
-    // Topbar (Cabecera)
     TopAppBar(
-        title = {}, // Se puede cambiar, pero no es necesario
+        title = {},
         navigationIcon = {
-            // Icono de navegacion pulsable para abrir el drawer
             IconButton(onClick = onMenuClick) {
                 Icon(Icons.Filled.Menu, contentDescription = "Abrir menú")
             }
         },
         actions = {
-            // Cosas para el logo
             Box(
-                modifier = Modifier
-                    .fillMaxHeight(),
+                modifier = Modifier.fillMaxHeight(),
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Icon(
@@ -266,7 +307,9 @@ private fun TopBar(onMenuClick: () -> Unit) {
     )
 }
 
+// ================================================================
 // Topbar para el menu de opciones
+// ================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarOpciones(navController: NavController, titulo: String) {
@@ -290,10 +333,11 @@ fun TopBarOpciones(navController: NavController, titulo: String) {
     )
 }
 
+// ================================================================
 // Layout principal de la app
+// ================================================================
 @Composable
 fun MainLayout(modifier: Modifier = Modifier) {
-    // Variables para recordad las informaciónes de la pantalla
     var campo1 by remember { mutableStateOf("") }
     var campoDropdownPrincipal by remember { mutableStateOf("") }
     var campoDropdown1 by remember { mutableStateOf("") }
@@ -308,7 +352,14 @@ fun MainLayout(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        // DropDownGrande (Este sería para la filtrar las tablas)
+
+        Text(
+            "Pantalla Principal",
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
         OptimizedDropdown(
             value = campoDropdownPrincipal,
             onValueChange = { campoDropdownPrincipal = it },
@@ -323,7 +374,6 @@ fun MainLayout(modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // DropDown1 (Para la comida)
             OptimizedDropdown(
                 value = campoDropdown1,
                 onValueChange = { campoDropdown1 = it },
@@ -332,7 +382,6 @@ fun MainLayout(modifier: Modifier = Modifier) {
                 modifier = Modifier.weight(1f)
             )
 
-            // DropDown2 (Para la ratio)
             OptimizedDropdown(
                 value = campoDropdown2,
                 onValueChange = { campoDropdown2 = it },
@@ -344,7 +393,6 @@ fun MainLayout(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Campo de texto (Para los gramos)
         OutlinedTextField(
             value = campo1,
             onValueChange = {
@@ -361,12 +409,10 @@ fun MainLayout(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(72.dp))
 
-        // Output
         ResultBox(text = "RESULTADO")
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.weight(0.8f))
 
-        // Boton OK
         Button(
             onClick = {},
             shape = RoundedCornerShape(50),
@@ -374,10 +420,14 @@ fun MainLayout(modifier: Modifier = Modifier) {
         ) {
             Text("OK")
         }
+
+        Spacer(modifier = Modifier.height(92.dp))
     }
 }
 
+// ================================================================
 // Clase que define los dropDowns
+// ================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OptimizedDropdown(
@@ -427,7 +477,9 @@ fun OptimizedDropdown(
     }
 }
 
+// ================================================================
 // Metodo paralos outputs de los resultados
+// ================================================================
 @Composable
 private fun ResultBox(text: String) {
     Box(
@@ -449,7 +501,9 @@ private fun ResultBox(text: String) {
     }
 }
 
+
 // Metodo para el boton flotante inferior (Pantalla principal)
+
 @Composable
 fun BotonMenuInferior(navController: NavController) {
     var isOpen by remember { mutableStateOf(false) }
@@ -460,7 +514,6 @@ fun BotonMenuInferior(navController: NavController) {
     ) {
         if (isOpen) {
 
-            // MiniFAB Info
             FloatingActionButton(
                 onClick = { navController.navigate("bajar_azucar") },
                 containerColor = MaterialTheme.colorScheme.primary,
@@ -473,7 +526,6 @@ fun BotonMenuInferior(navController: NavController) {
                 )
             }
 
-            // MiniFAB modo_receta
             FloatingActionButton(
                 onClick = { navController.navigate("modo_receta") },
                 containerColor = MaterialTheme.colorScheme.tertiary,
@@ -487,7 +539,6 @@ fun BotonMenuInferior(navController: NavController) {
             }
         }
 
-        // FAB principal
         FloatingActionButton(
             onClick = { isOpen = !isOpen },
             containerColor = MaterialTheme.colorScheme.primary,
@@ -500,24 +551,6 @@ fun BotonMenuInferior(navController: NavController) {
         }
     }
 }
-// Metodo para el boton flotante inferior de la info (Pantalla principal)
-@Composable
-fun BotonInfoInferior(navController: NavController) {
-    IconButton(
-        onClick = { navController.navigate("informacion") },
-        modifier = Modifier.size(72.dp) // Ajusta el tamaño del área clicable
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.signo_de_interrogaci_n_icono),
-            contentDescription = "Info",
-            modifier = Modifier.size(48.dp), // Tamaño del icono
-            tint = MaterialTheme.colorScheme.onBackground // Color del icono
-        )
-    }
-}
-
-
-
 
 // Pantalla modo_receta
 @Composable
@@ -531,7 +564,6 @@ fun ModoRecetaScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        // Texto principal
         Text(
             "Modo Receta",
             fontSize = 26.sp,
@@ -539,7 +571,6 @@ fun ModoRecetaScreen() {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Campo de texto
         OutlinedTextField(
             value = campo1,
             onValueChange = {
@@ -552,12 +583,10 @@ fun ModoRecetaScreen() {
 
         Spacer(modifier = Modifier.height(72.dp))
 
-        // Output modo_receta
         ResultBox("RESULTADO RECETA")
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.weight(0.8f))
 
-        // Boton OK
         Button(
             onClick = {},
             shape = RoundedCornerShape(50),
@@ -565,29 +594,48 @@ fun ModoRecetaScreen() {
         ) {
             Text("OK")
         }
+
+        Spacer(modifier = Modifier.height(92.dp))
     }
 }
 
 // Pantalla dentro del drawer (menu lateral) para la configuracion
 @Composable
-fun ConfiguracionScreen(navController: NavController) {
-    Column(
+fun ConfiguracionScreen(navController: NavController, isDarkTheme: Boolean, onThemeChange: (Boolean) -> Unit) {
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.Top
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Info inside pantalla
-        Text("Pantalla de configracion", style = MaterialTheme.typography.headlineSmall)
-        Spacer(modifier = Modifier.height(20.dp))
-        Text("Configuración", style = MaterialTheme.typography.bodyLarge)
+        // Título de la pantalla
+        item {
+            Text(
+                text = "Opciones",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        // Modo Oscuro
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Modo Oscuro", style = MaterialTheme.typography.bodyLarge)
+                var isDarkMode by remember { mutableStateOf(false) }
+                Switch(
+                    checked = isDarkTheme,
+                    onCheckedChange = onThemeChange
+                )
+            }
+        }
+
+        item { Spacer(modifier = Modifier.height(80.dp)) }
     }
 }
-
-/**
- * Codigo provisional
- * Son las pantallas dentro de cada opción individual
- * */
 
 // Pantalla Notificaciones
 @Composable
@@ -598,22 +646,43 @@ fun NotificiacionesScreen(navController : NavController) {
             .padding(20.dp),
         verticalArrangement = Arrangement.Top
     ) {
-        // Info inside pantalla
         Text("Pantalla de notificaciones", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(20.dp))
         Text("Notificaciones", style = MaterialTheme.typography.bodyLarge)
     }
 }
 
-// Pantalla informacion
+// NUEVA INFORMACION SCREEN COMO OVERLAY
 @Composable
-fun InformacionScreen() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Pantalla Informacion")
+fun InformacionScreen(onClose: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .background(Color.White, shape = RoundedCornerShape(20.dp))
+                .padding(24.dp)
+                .widthIn(max = 300.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Información",
+                style = MaterialTheme.typography.titleLarge
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Mereketengue.")
+
+        }
     }
 }
 
+// ================================================================
 // Pantalla bajar azucar
+// ================================================================
 @Composable
 fun BajarAzucarScreen() {
     var campo1 by remember { mutableStateOf("") }
@@ -626,7 +695,6 @@ fun BajarAzucarScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        // Texto principal
         Text(
             "Corrección de glucemia",
             fontSize = 26.sp,
@@ -634,7 +702,6 @@ fun BajarAzucarScreen() {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Campo de texto (Azucar actual)
         OutlinedTextField(
             value = campo1,
             onValueChange = {
@@ -647,7 +714,6 @@ fun BajarAzucarScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Campo de texto 2 (Azucar objetivo)
         OutlinedTextField(
             value = campo2,
             onValueChange = {
@@ -660,12 +726,10 @@ fun BajarAzucarScreen() {
 
         Spacer(modifier = Modifier.height(72.dp))
 
-        // Output modo_receta
         ResultBox("RESULTADO")
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.weight(0.8f))
 
-        // Boton OK
         Button(
             onClick = {},
             shape = RoundedCornerShape(50),
@@ -673,5 +737,7 @@ fun BajarAzucarScreen() {
         ) {
             Text("OK")
         }
+
+        Spacer(modifier = Modifier.height(92.dp))
     }
 }
