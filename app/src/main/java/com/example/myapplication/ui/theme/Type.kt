@@ -2,54 +2,110 @@ package com.example.myapplication.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-import androidx.compose.ui.text.googlefonts.GoogleFont
-import androidx.compose.ui.text.googlefonts.Font
-
 import com.example.myapplication.R
 
+// Fonts declaration
+val Lato = FontFamily(
+    Font(R.font.lato),
+    Font(R.font.lato_negrita))
 
-val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs
-)
+val Lexend = FontFamily(
+    Font(R.font.lexend),
+    Font(R.font.lexend_negrita))
 
-val bodyFontFamily = FontFamily(
-    Font(
-        googleFont = GoogleFont("Nunito"),
-        fontProvider = provider,
+// Fonts styles
+val NormalTypography = Typography(
+    bodySmall = TextStyle(
+        fontFamily = Lato,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = Lato,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+    ),
+    bodyLarge = TextStyle(
+        fontFamily = Lato,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+    ),
+    labelSmall = TextStyle(
+        fontFamily = Lato,
+        fontWeight = FontWeight.Bold,
+        fontSize = 12.sp,
+    ),
+    labelMedium = TextStyle(
+        fontFamily = Lato,
+        fontWeight = FontWeight.Bold,
+        fontSize = 14.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = Lato,
+        fontWeight = FontWeight.Bold,
+        fontSize = 16.sp
     )
 )
 
-val displayFontFamily = FontFamily(
-    Font(
-        googleFont = GoogleFont("Nunito"),
-        fontProvider = provider,
+val AccesibleTypography = Typography(
+    bodySmall = TextStyle(
+        fontFamily = Lexend,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = Lexend,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+    ),
+    bodyLarge = TextStyle(
+        fontFamily = Lexend,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+    ),
+    labelSmall = TextStyle(
+        fontFamily = Lexend,
+        fontWeight = FontWeight.Bold,
+        fontSize = 12.sp,
+    ),
+    labelMedium = TextStyle(
+        fontFamily = Lexend,
+        fontWeight = FontWeight.Bold,
+        fontSize = 14.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = Lexend,
+        fontWeight = FontWeight.Bold,
+        fontSize = 16.sp
     )
 )
 
 // Default Material 3 typography values
 val baseline = Typography()
 
-val AppTypography = Typography(
-    displayLarge = baseline.displayLarge.copy(fontFamily = displayFontFamily),
-    displayMedium = baseline.displayMedium.copy(fontFamily = displayFontFamily),
-    displaySmall = baseline.displaySmall.copy(fontFamily = displayFontFamily),
-    headlineLarge = baseline.headlineLarge.copy(fontFamily = displayFontFamily),
-    headlineMedium = baseline.headlineMedium.copy(fontFamily = displayFontFamily),
-    headlineSmall = baseline.headlineSmall.copy(fontFamily = displayFontFamily),
-    titleLarge = baseline.titleLarge.copy(fontFamily = displayFontFamily),
-    titleMedium = baseline.titleMedium.copy(fontFamily = displayFontFamily),
-    titleSmall = baseline.titleSmall.copy(fontFamily = displayFontFamily),
-    bodyLarge = baseline.bodyLarge.copy(fontFamily = bodyFontFamily),
-    bodyMedium = baseline.bodyMedium.copy(fontFamily = bodyFontFamily),
-    bodySmall = baseline.bodySmall.copy(fontFamily = bodyFontFamily),
-    labelLarge = baseline.labelLarge.copy(fontFamily = bodyFontFamily),
-    labelMedium = baseline.labelMedium.copy(fontFamily = bodyFontFamily),
-    labelSmall = baseline.labelSmall.copy(fontFamily = bodyFontFamily),
-)
+fun getAppTypography(accesible: Boolean, fontSizeOption: String): Typography {
+    val fontFamily = if (accesible) Lexend else Lato
+
+    // Ajuste de tamaño según opción
+    val sizeMap = when (fontSizeOption) {
+        "Pequeña" -> mapOf("small" to 12.sp, "medium" to 14.sp, "large" to 16.sp)
+        "Grande" -> mapOf("small" to 16.sp, "medium" to 18.sp, "large" to 20.sp)
+        else -> mapOf("small" to 14.sp, "medium" to 16.sp, "large" to 18.sp) // Normal
+    }
+
+    return Typography(
+        bodySmall = TextStyle(fontFamily = fontFamily, fontSize = sizeMap["small"]!!),
+        bodyMedium = TextStyle(fontFamily = fontFamily, fontSize = sizeMap["medium"]!!),
+        bodyLarge = TextStyle(fontFamily = fontFamily, fontSize = sizeMap["large"]!!),
+        labelSmall = TextStyle(fontFamily = fontFamily, fontSize = sizeMap["small"]!!, fontWeight = FontWeight.Bold),
+        labelMedium = TextStyle(fontFamily = fontFamily, fontSize = sizeMap["medium"]!!, fontWeight = FontWeight.Bold),
+        labelLarge = TextStyle(fontFamily = fontFamily, fontSize = sizeMap["large"]!!, fontWeight = FontWeight.Bold),
+    )
+}
+
 
