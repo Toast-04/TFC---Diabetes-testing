@@ -37,7 +37,10 @@ fun TopBar(onMenuClick: () -> Unit) {
                         .height(38.dp)
                 )
             }
-        }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.onTertiaryContainer
+        )
     )
 }
 
@@ -61,5 +64,8 @@ fun TopBarOpciones(navController: NavController, titulo: String) {
                 )
             }
         },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.onTertiaryContainer
+        )
     )
 }

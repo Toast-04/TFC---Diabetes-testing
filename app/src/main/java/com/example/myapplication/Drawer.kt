@@ -6,6 +6,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -15,8 +16,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun DrawerContent(
-    isDarkTheme: Boolean,
-    onThemeChange: (Boolean) -> Unit,
     navController: NavController,
     drawerState: DrawerState,
     scope: CoroutineScope
@@ -27,8 +26,10 @@ fun DrawerContent(
             .padding(32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Menú Lateral", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(16.dp))
+        Text("Menú Lateral", style = MaterialTheme.typography.labelLarge, modifier = Modifier.align(Alignment.CenterHorizontally))
+
+
+        HorizontalDivider(color = Color.Gray, thickness = 1.dp)
 
         DrawerButton(
             icon = painterResource(id = R.drawable.notificaciones),
@@ -51,23 +52,6 @@ fun DrawerContent(
                 }
             }
         )
-
-        Column(
-            modifier = Modifier.fillMaxHeight(),
-            verticalArrangement = Arrangement.Bottom
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Modo Oscuro")
-                Switch(
-                    checked = isDarkTheme,
-                    onCheckedChange = onThemeChange
-                )
-            }
-        }
     }
 }
 
@@ -83,13 +67,13 @@ fun DrawerButton(
             .fillMaxWidth()
             .height(50.dp),
         shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(icon, contentDescription = text, modifier = Modifier.size(24.dp))
+            Icon(icon, contentDescription = text, modifier = Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.width(24.dp))
             Text(
                 text,
@@ -97,6 +81,7 @@ fun DrawerButton(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
+
         }
     }
 }

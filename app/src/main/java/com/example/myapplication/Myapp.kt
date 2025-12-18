@@ -1,6 +1,5 @@
 package com.example.myapplication
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,25 +33,32 @@ fun MyApp(
         if (drawerState.isOpen) drawerState.close()
     }
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet(modifier = Modifier.width(300.dp)) {
-                DrawerContent(
-                    isDarkTheme = isDarkTheme,
-                    onThemeChange = onThemeChange,
-                    navController = navController,
-                    drawerState = drawerState,
-                    scope = scope
-                )
-            }
-        }
+    // =========================
+    // THEME ENVOLVIENDO TODO
+    // =========================
+    AppTheme(
+        darkTheme = isDarkTheme,
+        accesible = modoAccesible,
+        fontSizeOption = fontSizeOption
     ) {
-        AppTheme(
-            darkTheme = isDarkTheme,
-            accesible = modoAccesible,
-            fontSizeOption = fontSizeOption
+        // =========================
+        // DRAWER
+        // =========================
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                ModalDrawerSheet(modifier = Modifier.width(300.dp)) {
+                    DrawerContent(
+                        navController = navController,
+                        drawerState = drawerState,
+                        scope = scope
+                    )
+                }
+            }
         ) {
+            // =========================
+            // SCAFFOLD
+            // =========================
             Scaffold(
                 topBar = {
                     when (currentRoute) {
@@ -63,15 +69,14 @@ fun MyApp(
                         "bajar_azucar" -> TopBarOpciones(navController, titulo = "Corrección")
                     }
                 },
-                containerColor = MaterialTheme.colorScheme.background,
                 floatingActionButton = {
                     if (currentRoute == "main") {
                         Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
+                                .padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(
                                 onClick = { showInfo = !showInfo },
@@ -88,15 +93,17 @@ fun MyApp(
                         }
                     }
                 },
-                floatingActionButtonPosition = FabPosition.End
+                floatingActionButtonPosition = FabPosition.End,
+                containerColor = MaterialTheme.colorScheme.primaryContainer
             ) { paddingValues ->
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
                         .padding(paddingValues)
                 ) {
-                    // Navegación principal
+                    // =========================
+                    // NAVHOST PRINCIPAL
+                    // =========================
                     NavHost(
                         navController = navController,
                         startDestination = "main",
@@ -105,7 +112,6 @@ fun MyApp(
                         composable("main") { MainLayout() }
                         composable("configuracion") {
                             ConfiguracionScreen(
-                                navController = navController,
                                 isDarkTheme = isDarkTheme,
                                 onThemeChange = onThemeChange,
                                 fontSizeOption = fontSizeOption,
@@ -119,7 +125,9 @@ fun MyApp(
                         composable("bajar_azucar") { BajarAzucarScreen() }
                     }
 
-                    // Overlay de información
+                    // =========================
+                    // OVERLAY INFORMACIÓN
+                    // =========================
                     if (showInfo) {
                         InformacionScreen(onClose = { showInfo = false })
                     }

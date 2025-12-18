@@ -21,7 +21,6 @@ import androidx.navigation.NavController
 
 @Composable
 fun ConfiguracionScreen(
-    navController: NavController,
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit,
     fontSizeOption: String,
@@ -82,7 +81,7 @@ fun ConfiguracionScreen(
                                     MaterialTheme.colorScheme.tertiaryContainer
                             )
                         ) {
-                            Text(option, style = MaterialTheme.typography.titleMedium)
+                            Text(option, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
                         }
                     }
                 }
