@@ -32,7 +32,7 @@ fun DrawerContent(
         HorizontalDivider(color = Color.Gray, thickness = 1.dp)
 
         DrawerButton(
-            icon = painterResource(id = R.drawable.notificaciones),
+            icon = painterResource(id = R.drawable.icono_configuraciones),
             text = "Configuración",
             onClick = {
                 scope.launch { drawerState.close() }
@@ -43,7 +43,7 @@ fun DrawerContent(
         )
 
         DrawerButton(
-            icon = painterResource(id = R.drawable.notificaciones),
+            icon = painterResource(id = R.drawable.icono_notificaciones),
             text = "Notificaciones",
             onClick = {
                 scope.launch { drawerState.close() }

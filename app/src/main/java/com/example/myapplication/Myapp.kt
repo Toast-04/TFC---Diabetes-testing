@@ -83,7 +83,7 @@ fun MyApp(
                                 modifier = Modifier.size(72.dp)
                             ) {
                                 Icon(
-                                    painter = painterResource(id = R.drawable.signo_de_interrogaci_n_icono),
+                                    painter = painterResource(id = R.drawable.icono_interrogracion),
                                     contentDescription = "Info",
                                     modifier = Modifier.size(48.dp),
                                     tint = MaterialTheme.colorScheme.onBackground

@@ -121,7 +121,7 @@ fun BotonMenuInferior(navController: NavController) {
                 modifier = Modifier.size(56.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.gorro_cocina_icono),
+                    painter = painterResource(id = R.drawable.icono_modo_receta),
                     contentDescription = "Modo receta",
                     modifier = Modifier.padding(8.dp)
                 )

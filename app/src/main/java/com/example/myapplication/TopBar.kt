@@ -29,7 +29,7 @@ fun TopBar(onMenuClick: () -> Unit) {
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.logo_app_nombre),
+                    painter = painterResource(id = R.drawable.icono_logo),
                     contentDescription = "Logo",
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier

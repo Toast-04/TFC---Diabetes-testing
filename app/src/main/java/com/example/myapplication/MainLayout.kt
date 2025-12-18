@@ -40,7 +40,7 @@ fun MainLayout(modifier: Modifier = Modifier) {
             onValueChange = { campoDropdownPrincipal = it },
             label = "Dropdown Principal",
             options = opciones,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -54,7 +54,7 @@ fun MainLayout(modifier: Modifier = Modifier) {
                 onValueChange = { campoDropdown1 = it },
                 label = "Dropdown 1",
                 options = opciones,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
 
             OptimizedDropdown(
