@@ -134,8 +134,9 @@ fun BotonMenuInferior(navController: NavController) {
             modifier = Modifier.size(72.dp)
         ) {
             Icon(
-                imageVector = if (isOpen) Icons.Default.Close else Icons.Default.Add,
-                contentDescription = if (isOpen) "Cerrar" else "Abrir"
+                painter = painterResource(id = R.drawable.logo_app_better_diabetes),
+                contentDescription = "FAB",
+                modifier = Modifier.padding(8.dp)
             )
         }
     }

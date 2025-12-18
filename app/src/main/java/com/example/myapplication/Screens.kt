@@ -161,7 +161,7 @@ fun InformacionScreen(onClose: () -> Unit) {
                 .padding(24.dp)
                 .widthIn(max = 300.dp)
                 .clickable(
-                    onClick = { /* Evita que el click pase al fondo */ },
+                    onClick = {  },
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }
                 ),

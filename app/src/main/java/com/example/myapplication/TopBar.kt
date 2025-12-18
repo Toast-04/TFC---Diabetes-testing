@@ -58,9 +58,9 @@ fun TopBarOpciones(navController: NavController, titulo: String) {
         navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Volver atrás",
-                    tint = MaterialTheme.colorScheme.onBackground
+                    painter = painterResource(id = R.drawable.icono_flecha),
+                    contentDescription = "Modo receta",
+                    modifier = Modifier.padding(8.dp)
                 )
             }
         },
