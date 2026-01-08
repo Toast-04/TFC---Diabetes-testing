@@ -5,12 +5,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
 import com.example.myapplication.ui.theme.AppTheme
 import kotlinx.coroutines.launch
-
+// Corazon de la app, lo que se encarga de darle el estilo y tomar acciones
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyApp(
@@ -21,8 +22,10 @@ fun MyApp(
     fontSizeOption: String,
     onFontSizeChange: (String) -> Unit
 ) {
+
+    // Variables generales
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope() // No tocar
     val navController = rememberNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
@@ -33,17 +36,13 @@ fun MyApp(
         if (drawerState.isOpen) drawerState.close()
     }
 
-    // =========================
-    // THEME ENVOLVIENDO TODO
-    // =========================
+    // Theme para diseño y estilo
     AppTheme(
         darkTheme = isDarkTheme,
         accesible = modoAccesible,
         fontSizeOption = fontSizeOption
     ) {
-        // =========================
-        // DRAWER
-        // =========================
+        // Drawer y contenidos
         ModalNavigationDrawer(
             drawerState = drawerState,
             drawerContent = {
@@ -56,10 +55,9 @@ fun MyApp(
                 }
             }
         ) {
-            // =========================
-            // SCAFFOLD
-            // =========================
+           // Scaffold principal
             Scaffold(
+                // Barra superior y direcciones
                 topBar = {
                     when (currentRoute) {
                         "main" -> TopBar { scope.launch { drawerState.open() } }
@@ -69,6 +67,7 @@ fun MyApp(
                         "bajar_azucar" -> TopBarOpciones(navController, titulo = "Corrección")
                     }
                 },
+                // Acciones de los botones flotantes
                 floatingActionButton = {
                     if (currentRoute == "main") {
                         Row(
@@ -78,6 +77,7 @@ fun MyApp(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            // Boton de icono para la informacion
                             IconButton(
                                 onClick = { showInfo = !showInfo },
                                 modifier = Modifier.size(72.dp)
@@ -89,10 +89,12 @@ fun MyApp(
                                     tint = MaterialTheme.colorScheme.onBackground
                                 )
                             }
+                            // Boton de menu desplegable
                             BotonMenuInferior(navController)
                         }
                     }
                 },
+                // Variables permutables del menu flotante
                 floatingActionButtonPosition = FabPosition.End,
                 containerColor = MaterialTheme.colorScheme.primaryContainer
             ) { paddingValues ->
@@ -101,9 +103,7 @@ fun MyApp(
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
-                    // =========================
-                    // NAVHOST PRINCIPAL
-                    // =========================
+                    // Navhost controller
                     NavHost(
                         navController = navController,
                         startDestination = "main",
@@ -120,14 +120,12 @@ fun MyApp(
                                 onModoAccesibleChange = onModoAccesibleChange
                             )
                         }
-                        composable("notificaciones") { NotificiacionesScreen(navController) }
+                        composable("notificaciones") { NotificiacionesScreen(navController, context = LocalContext.current)}
                         composable("modo_receta") { ModoRecetaScreen() }
                         composable("bajar_azucar") { BajarAzucarScreen() }
                     }
 
-                    // =========================
-                    // OVERLAY INFORMACIÓN
-                    // =========================
+                    // Overlay de informacion
                     if (showInfo) {
                         InformacionScreen(onClose = { showInfo = false })
                     }

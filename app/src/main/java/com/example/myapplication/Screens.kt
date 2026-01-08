@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -128,7 +129,7 @@ fun ConfiguracionScreen(
 }
 
 @Composable
-fun NotificiacionesScreen(navController: NavController) {
+fun NotificiacionesScreen(navController: NavController, context: Context) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -138,8 +139,22 @@ fun NotificiacionesScreen(navController: NavController) {
         Text("Pantalla de notificaciones", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(20.dp))
         Text("Notificaciones", style = MaterialTheme.typography.bodyLarge)
+        Spacer(modifier = Modifier.height(40.dp))
+
+        // Botón para enviar la notificación
+        Button(onClick = {
+            // Llamamos a la función que ya creaste en NotificationUtils.kt
+            mostrarNotificacion(
+                context,
+                "¡Hola desde Compose!",
+                "Esta es tu notificación de prueba"
+            )
+        }) {
+            Text("Enviar notificación")
+        }
     }
 }
+
 
 @Composable
 fun InformacionScreen(onClose: () -> Unit) {

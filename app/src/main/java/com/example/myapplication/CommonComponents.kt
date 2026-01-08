@@ -1,5 +1,12 @@
 package com.example.myapplication
 
+import android.Manifest
+import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,10 +19,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 
+// Caja que se encarga de mostrar el resultado (llamar a el)
 @Composable
 fun ResultBox(text: String) {
+    // Box para el resultado
     Box(
         modifier = Modifier
             .width(250.dp)
@@ -27,6 +40,7 @@ fun ResultBox(text: String) {
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
+        // Texto del resultado
         Text(
             text = text,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -34,7 +48,7 @@ fun ResultBox(text: String) {
         )
     }
 }
-
+// Selectores optimizados
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OptimizedDropdown(
@@ -44,13 +58,17 @@ fun OptimizedDropdown(
     options: List<String>,
     modifier: Modifier = Modifier
 ) {
+    // Estado para controlar el menú desplegable
     var expanded by remember { mutableStateOf(false) }
 
+    // Box para el menú desplegable
     Box(modifier = modifier) {
+        // Campo desplegable que detecta si esta abierto o cerrado
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = it }
         ) {
+            // Campo de texto con icono de flecha
             OutlinedTextField(
                 value = value,
                 onValueChange = {},
@@ -65,6 +83,7 @@ fun OptimizedDropdown(
                 singleLine = true
             )
 
+            // Menú desplegable (acciones)
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
@@ -83,16 +102,21 @@ fun OptimizedDropdown(
         }
     }
 }
-
+// Boton del menu inferior, para ir a diferentes pantallas
 @Composable
 fun BotonMenuInferior(navController: NavController) {
+
+    // Estado para controlar el menú desplegable
     var isOpen by remember { mutableStateOf(false) }
 
+    // Botón flotante con icono de flecha
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         if (isOpen) {
+
+            // Boton secundario para el modo bajar azucar
             FloatingActionButton(
                 onClick = {
                     navController.navigate("bajar_azucar") {
@@ -103,6 +127,7 @@ fun BotonMenuInferior(navController: NavController) {
                 containerColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(56.dp)
             ) {
+                // Icono
                 Icon(
                     painter = painterResource(id = R.drawable.icono_bajar_azucar),
                     contentDescription = "Bajar azucar",
@@ -110,6 +135,7 @@ fun BotonMenuInferior(navController: NavController) {
                 )
             }
 
+            // Boton secundario para el modo receta
             FloatingActionButton(
                 onClick = {
                     navController.navigate("modo_receta") {
@@ -120,6 +146,7 @@ fun BotonMenuInferior(navController: NavController) {
                 containerColor = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier.size(56.dp)
             ) {
+                // Icono
                 Icon(
                     painter = painterResource(id = R.drawable.icono_modo_receta),
                     contentDescription = "Modo receta",
@@ -128,15 +155,57 @@ fun BotonMenuInferior(navController: NavController) {
             }
         }
 
+        // Acciones y modificadores del menu *NO TOCAR*
         FloatingActionButton(
             onClick = { isOpen = !isOpen },
             containerColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(72.dp)
         ) {
+            // Icono
             Icon(
                 painter = painterResource(id = R.drawable.logo_app_better_diabetes),
                 contentDescription = "FAB",
                 modifier = Modifier.padding(8.dp)
+            )
+        }
+    }
+}
+
+fun crearCanalNotificacion(context: Context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val canal = NotificationChannel(
+            "ID_CANAL",
+            "Mi Canal",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply { description = "Canal para notificaciones de prueba" }
+
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.createNotificationChannel(canal)
+    }
+}
+
+fun mostrarNotificacion(context: Context, titulo: String, mensaje: String) {
+    val builder = NotificationCompat.Builder(context, "ID_CANAL")
+        .setSmallIcon(R.drawable.logo_app_better_diabetes)
+        .setContentTitle(titulo)
+        .setContentText(mensaje)
+        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        .setAutoCancel(true)
+
+    with(NotificationManagerCompat.from(context)) {
+        notify(1, builder.build())
+    }
+}
+
+fun pedirPermisoNotificaciones(activity: Activity) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                activity,
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                1001
             )
         }
     }

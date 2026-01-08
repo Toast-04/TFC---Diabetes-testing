@@ -11,16 +11,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+// Layout principal de la app
 @Composable
 fun MainLayout(modifier: Modifier = Modifier) {
+
+    // Variables para los campos de texto
     var campo1 by remember { mutableStateOf("") }
     var campoDropdownPrincipal by remember { mutableStateOf("") }
     var campoDropdown1 by remember { mutableStateOf("") }
     var campoDropdown2 by remember { mutableStateOf("") }
 
+    // Variable temporal para los dropdown
     val opciones = remember { listOf("Opción 1", "Opción 2", "Opción 3") }
 
+    // Interior de la pantalla principal
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -35,6 +39,7 @@ fun MainLayout(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
+        // Selector categoria
         OptimizedDropdown(
             value = campoDropdownPrincipal,
             onValueChange = { campoDropdownPrincipal = it },
@@ -49,6 +54,7 @@ fun MainLayout(modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Selector comida
             OptimizedDropdown(
                 value = campoDropdown1,
                 onValueChange = { campoDropdown1 = it },
@@ -57,6 +63,7 @@ fun MainLayout(modifier: Modifier = Modifier) {
                 modifier = Modifier.weight(1f),
             )
 
+            // Selector ratio
             OptimizedDropdown(
                 value = campoDropdown2,
                 onValueChange = { campoDropdown2 = it },
@@ -68,8 +75,11 @@ fun MainLayout(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Campo para la cantidad de gramps
         OutlinedTextField(
             value = campo1,
+
+            // Formato adecuado para dentro de textfield *CAMBIAR SI QUIERES*
             onValueChange = {
                 if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$")))
                     campo1 = it
@@ -84,10 +94,12 @@ fun MainLayout(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(72.dp))
 
+        // Caja de resultado
         ResultBox(text = "RESULTADO")
 
         Spacer(modifier = Modifier.weight(0.8f))
 
+        // Boton para hacer la operacion
         Button(
             onClick = {},
             shape = RoundedCornerShape(50),

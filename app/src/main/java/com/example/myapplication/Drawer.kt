@@ -14,12 +14,15 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+// Contenido interno dentro de la barra lateral
 @Composable
 fun DrawerContent(
     navController: NavController,
     drawerState: DrawerState,
     scope: CoroutineScope
 ) {
+
+    // Contenido interno
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -28,9 +31,10 @@ fun DrawerContent(
     ) {
         Text("Menú Lateral", style = MaterialTheme.typography.labelLarge, modifier = Modifier.align(Alignment.CenterHorizontally))
 
-
+        // Divisor
         HorizontalDivider(color = Color.Gray, thickness = 1.dp)
 
+        // Boton interno de la barra lateral: COnfiguraciones
         DrawerButton(
             icon = painterResource(id = R.drawable.icono_configuraciones),
             text = "Configuración",
@@ -42,6 +46,7 @@ fun DrawerContent(
             }
         )
 
+        // Boton interno de la barra lateral: Notificaciones
         DrawerButton(
             icon = painterResource(id = R.drawable.icono_notificaciones),
             text = "Notificaciones",
@@ -54,13 +59,14 @@ fun DrawerContent(
         )
     }
 }
-
+// Menu lateral
 @Composable
 fun DrawerButton(
     icon: Painter,
     text: String,
     onClick: () -> Unit
 ) {
+    // Boton con icono y texto
     Button(
         onClick = onClick,
         modifier = Modifier
