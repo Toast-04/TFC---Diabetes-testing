@@ -20,7 +20,8 @@ fun MyApp(
     modoAccesible: Boolean,
     onModoAccesibleChange: (Boolean) -> Unit,
     fontSizeOption: String,
-    onFontSizeChange: (String) -> Unit
+    onFontSizeChange: (String) -> Unit,
+    viewModel: MainViewModel //<-- Parametro nuevo para el ViewModel
 ) {
 
     // Variables generales
@@ -109,7 +110,7 @@ fun MyApp(
                         startDestination = "main",
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        composable("main") { MainLayout() }
+                        composable("main") { MainLayout(viewModel = viewModel) }
                         composable("configuracion") {
                             ConfiguracionScreen(
                                 isDarkTheme = isDarkTheme,

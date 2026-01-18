@@ -13,16 +13,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 // Layout principal de la app
 @Composable
-fun MainLayout(modifier: Modifier = Modifier) {
+fun MainLayout(modifier: Modifier = Modifier,
+               viewModel: MainViewModel //<-- Parametro nuevo para el ViewModel
+) {
 
     // Variables para los campos de texto
     var campo1 by remember { mutableStateOf("") }
-    var campoDropdownPrincipal by remember { mutableStateOf("") }
-    var campoDropdown1 by remember { mutableStateOf("") }
-    var campoDropdown2 by remember { mutableStateOf("") }
-
-    // Variable temporal para los dropdown
-    val opciones = remember { listOf("Opción 1", "Opción 2", "Opción 3") }
+    //La variables que aqui habian ahora son innecesarias ya que van en el viewmodel
 
     // Interior de la pantalla principal
     Column(
@@ -39,13 +36,15 @@ fun MainLayout(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Selector categoria
+        //DropDown Principal, selector de clase de alimentos
         OptimizedDropdown(
-            value = campoDropdownPrincipal,
-            onValueChange = { campoDropdownPrincipal = it },
-            label = "Dropdown Principal",
-            options = opciones,
-            modifier = Modifier.fillMaxWidth(),
+            value = viewModel.tablaSeleccionada,
+            onValueChange = { nuevaTabla ->
+                viewModel.onTablaSeleccionada(nuevaTabla)
+            },
+            label = "Seleccionar Categoría",
+            options = viewModel.listaTablas,
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -54,16 +53,20 @@ fun MainLayout(modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Selector comida
+            // DropDown Secundario, selector de alimentos
             OptimizedDropdown(
-                value = campoDropdown1,
-                onValueChange = { campoDropdown1 = it },
-                label = "Dropdown 1",
-                options = opciones,
+                value = viewModel.alimentoSeleccionado,
+                onValueChange = { nuevoAlimento ->
+                    viewModel.onAlimentoSeleccionado(nuevoAlimento)
+                },
+                label = "Seleccionar Alimento",
+                options = viewModel.listaAlimentos, // <-- Esto se actualiza solo
                 modifier = Modifier.weight(1f),
             )
 
             // Selector ratio
+
+            /**
             OptimizedDropdown(
                 value = campoDropdown2,
                 onValueChange = { campoDropdown2 = it },
@@ -71,6 +74,7 @@ fun MainLayout(modifier: Modifier = Modifier) {
                 options = opciones,
                 modifier = Modifier.weight(1f)
             )
+            */
         }
 
         Spacer(modifier = Modifier.height(16.dp))

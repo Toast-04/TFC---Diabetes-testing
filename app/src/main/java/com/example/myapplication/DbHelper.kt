@@ -49,4 +49,48 @@ class DbHelper(val context: Context) : SQLiteOpenHelper(context, "diabetes_tabla
         outputStream.close()
         inputStream.close()
     }
+
+    //Método para obten lista de tablas (Categorias)
+    fun ObtenerTablas(): List<String> {
+        val lista = ArrayList<String>()
+        val db = this.readableDatabase
+
+        //Consultamos la tabla maestra, excluyendo tablas del sistema y temporales
+        val query = """
+            SELECT name FROM sqlite_master 
+            WHERE type='table' 
+            AND name NOT LIKE 'android_%' 
+            AND name NOT LIKE 'sqlite_%' 
+            AND name NOT LIKE 'sqlb_%'
+            ORDER BY name
+        """
+        //Filtro para no mostrar tablas internas de android
+        val cursor = db.rawQuery(query, null)
+        if (cursor.moveToFirst()) {
+            do {
+                lista.add(cursor.getString(0))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return lista
+    }
+
+    //Método para obtener elementos de una tabla especifica
+    fun obtenerElementosTabla (nombreTabla: String): List<String> {
+        val lista = ArrayList<String>()
+        val db = this.readableDatabase
+        try {
+            val cursor = db.rawQuery("SELECT Alimento FROM \"$nombreTabla\" ORDER BY Alimento", null)
+            if (cursor.moveToFirst()) {
+                do {
+                    lista.add(cursor.getString(0))
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return lista
+    }
+
 }

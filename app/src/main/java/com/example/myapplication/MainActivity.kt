@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import DbHelper
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,6 +14,13 @@ import com.example.myapplication.ui.theme.AppTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        //Iniciamos el Helper y copiamos la DB si es necesario
+        val dbHelper = DbHelper(this)
+        dbHelper.checkAndCopyDatabase() //<-- Esto muevo el archivo .db a la carpeta correcta
+
+        //Creamos el ViewModel
+        val mainViewModel = MainViewModel(dbHelper)
 
         crearCanalNotificacion(this)
         pedirPermisoNotificaciones(this)
@@ -46,7 +54,9 @@ class MainActivity : ComponentActivity() {
                         modoAccesible = modoAccesible,
                         onModoAccesibleChange = { modoAccesible = it },
                         fontSizeOption = fontSizeOption,
-                        onFontSizeChange = { fontSizeOption = it }
+                        onFontSizeChange = { fontSizeOption = it },
+                        //Pasamos el viewModel a la app
+                        viewModel = mainViewModel
                     )
                 }
             }
