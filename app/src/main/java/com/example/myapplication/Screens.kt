@@ -7,13 +7,17 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -42,7 +46,7 @@ fun ConfiguracionScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .requiredHeight(60.dp),
-                contentAlignment = Alignment.CenterStart
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Opciones",
@@ -126,32 +130,171 @@ fun ConfiguracionScreen(
 
         // --- Spacer final ---
         item { Spacer(modifier = Modifier.height(40.dp)) }
+
+        // Ratio label
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .requiredHeight(60.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Ratio",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        // --- Switch para las ratio ---
+        item {
+            var isRatioActive by remember { mutableStateOf(false) }
+
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Activar ratio", style = MaterialTheme.typography.bodyLarge)
+                    Switch(
+                        checked = isRatioActive,
+                        onCheckedChange = { isRatioActive = it }
+                    )
+                }
+
+                if (isRatioActive) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    var manana by remember { mutableStateOf("") }
+                    var mediodia by remember { mutableStateOf("") }
+                    var noche by remember { mutableStateOf("") }
+
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedTextField(
+                            value = manana,
+                            onValueChange = { manana = it },
+                            label = { Text("Mañana") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = mediodia,
+                            onValueChange = { mediodia = it },
+                            label = { Text("Mediodía") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = noche,
+                            onValueChange = { noche = it },
+                            label = { Text("Noche") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
 @Composable
-fun NotificiacionesScreen(navController: NavController, context: Context) {
-    Column(
+fun NotificacionesScreen(navController: NavController, context: Context) {
+    val context = LocalContext.current
+    var isNotificationsActive by remember { mutableStateOf(false) }
+    var selectedTime by remember { mutableStateOf("") }
+
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.Top
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Pantalla de notificaciones", style = MaterialTheme.typography.headlineSmall)
-        Spacer(modifier = Modifier.height(20.dp))
-        Text("Notificaciones", style = MaterialTheme.typography.bodyLarge)
-        Spacer(modifier = Modifier.height(40.dp))
+        // --- Título ---
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .requiredHeight(60.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Notificaciones",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
 
-        // Botón para enviar la notificación
-        Button(onClick = {
-            // Llamamos a la función que ya creaste en NotificationUtils.kt
-            mostrarNotificacion(
-                context,
-                "¡Hola desde Compose!",
-                "Esta es tu notificación de prueba"
-            )
-        }) {
-            Text("Enviar notificación")
+        // --- Activar notificaciones ---
+        item {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Activar Notificaciones", style = MaterialTheme.typography.bodyLarge)
+
+                    Switch(
+                        checked = isNotificationsActive,
+                        onCheckedChange = { isNotificationsActive = it }
+                    )
+                }
+
+                // --- Selección de hora solo si está activado ---
+                if (isNotificationsActive) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp) // un pequeño espacio entre label y TextField
+                    ) {
+                        // Label a la izquierda
+                        Text(
+                            text = "Recordatorio Lenta:",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(0.4f) // ocupa menos espacio
+                        )
+
+                        OutlinedTextField(
+                            value = selectedTime,
+                            onValueChange = { selectedTime = it },
+                            label = { Text("Hora (HH:mm)") },
+                            readOnly = true,
+                            modifier = Modifier.fillMaxWidth(0.5f),
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    val calendar = java.util.Calendar.getInstance()
+                                    android.app.TimePickerDialog(
+                                        context,
+                                        { _, hour: Int, minute: Int ->
+                                            // Guardamos la hora seleccionada
+                                            selectedTime = String.format("%02d:%02d", hour, minute)
+
+                                            // Programamos la notificación solo si el switch está activo
+                                            if (isNotificationsActive) {
+                                                scheduleNotification(context, hour, minute)
+                                            }
+                                        },
+                                        calendar.get(java.util.Calendar.HOUR_OF_DAY),
+                                        calendar.get(java.util.Calendar.MINUTE),
+                                        true
+                                    ).show()
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Seleccionar hora"
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -212,7 +355,7 @@ fun ModoRecetaScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
@@ -335,6 +478,47 @@ fun BajarAzucarScreen() {
         Spacer(modifier = Modifier.height(92.dp))
     }
 }
+
+fun scheduleNotification(context: Context, hour: Int, minute: Int) {
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+    val intent = android.content.Intent(context, NotificationReceiver::class.java)
+    val pendingIntent = android.app.PendingIntent.getBroadcast(
+        context,
+        0,
+        intent,
+        android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+    )
+
+    val calendar = java.util.Calendar.getInstance().apply {
+        set(java.util.Calendar.HOUR_OF_DAY, hour)
+        set(java.util.Calendar.MINUTE, minute)
+        set(java.util.Calendar.SECOND, 0)
+    }
+
+    // Si la hora ya pasó, programa para el día siguiente
+    if (calendar.timeInMillis < System.currentTimeMillis()) {
+        calendar.add(java.util.Calendar.DAY_OF_YEAR, 1)
+    }
+
+    alarmManager.setExact(
+        android.app.AlarmManager.RTC_WAKEUP,
+        calendar.timeInMillis,
+        pendingIntent
+    )
+}
+
+class NotificationReceiver : android.content.BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: android.content.Intent?) {
+        context?.let {
+            mostrarNotificacion(
+                it,
+                "Recordatorio",
+                "¡Es hora de tu recordatorio!"
+            )
+        }
+    }
+}
+
 //Función para la lógica del caluclo
 fun calculoAzucar(azucarActual: Int, azucarObjetivo: Int): Double {
     //Calculo de la correción de azucar

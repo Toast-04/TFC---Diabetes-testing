@@ -193,6 +193,13 @@ fun mostrarNotificacion(context: Context, titulo: String, mensaje: String) {
         .setAutoCancel(true)
 
     with(NotificationManagerCompat.from(context)) {
+        if (ActivityCompat.checkSelfPermission(
+                this as Context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
         notify(1, builder.build())
     }
 }
