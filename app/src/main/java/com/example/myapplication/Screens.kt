@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import kotlin.math.round
 
 @Composable
 fun ConfiguracionScreen(
@@ -252,8 +253,13 @@ fun ModoRecetaScreen() {
 
 @Composable
 fun BajarAzucarScreen() {
-    var campo1 by remember { mutableStateOf("") }
-    var campo2 by remember { mutableStateOf("") }
+    //Estados para los inputs de azucar
+    var azucarActual by remember { mutableStateOf("") }
+    var azucarObjetivo by remember { mutableStateOf("") }
+
+    //Estado para el resultado
+    var textoResultado by remember { mutableStateOf("") }
+
 
     Column(
         modifier = Modifier
@@ -269,10 +275,11 @@ fun BajarAzucarScreen() {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
+        //Input para azucar actual
         OutlinedTextField(
-            value = campo1,
+            value = azucarActual,
             onValueChange = {
-                if (it.isEmpty() || it.matches(Regex("^\\d+$"))) campo1 = it
+                if (it.isEmpty() || it.matches(Regex("^\\d+$"))) azucarActual = it
             },
             label = { Text("Azucar actual") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -281,10 +288,11 @@ fun BajarAzucarScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        //Input para azucar objetivo
         OutlinedTextField(
-            value = campo2,
+            value = azucarObjetivo,
             onValueChange = {
-                if (it.isEmpty() || it.matches(Regex("^\\d+$"))) campo2 = it
+                if (it.isEmpty() || it.matches(Regex("^\\d+$"))) azucarObjetivo = it
             },
             label = { Text("Azucar objetivo") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -293,12 +301,31 @@ fun BajarAzucarScreen() {
 
         Spacer(modifier = Modifier.height(72.dp))
 
-        ResultBox("RESULTADO")
+        //Pasamos el estado al commponente visual
+        ResultBox(textoResultado)
 
         Spacer(modifier = Modifier.weight(0.8f))
 
         Button(
-            onClick = {},
+            onClick = {
+                //Lógica del botón
+                val actual = azucarActual.toIntOrNull() ?: 0
+                val objetivo = azucarObjetivo.toIntOrNull() ?: 0
+
+                //Calculamos
+                val resultadoDouble = calculoAzucar(actual, objetivo)
+
+                //Lógica visual, si acaba en .0 se muestra numero entero, si acaba .5 se muestra como decimal
+                val resultado = if (resultadoDouble % 1.0 == 0.0) {
+                    resultadoDouble.toInt().toString()
+                } else {
+                    resultadoDouble.toString()
+                }
+
+                //Actualizamos el estado para que se vea en pantalla
+                textoResultado = "Has de pincharte $resultado UI"
+
+            },
             shape = RoundedCornerShape(50),
             modifier = Modifier.size(120.dp)
         ) {
@@ -307,4 +334,12 @@ fun BajarAzucarScreen() {
 
         Spacer(modifier = Modifier.height(92.dp))
     }
+}
+//Función para la lógica del caluclo
+fun calculoAzucar(azucarActual: Int, azucarObjetivo: Int): Double {
+    //Calculo de la correción de azucar
+    val calculo = ((azucarActual - azucarObjetivo)/50.0)
+
+    //Algoritmo para redondear a 0.5
+    return round(calculo * 2) / 2
 }
