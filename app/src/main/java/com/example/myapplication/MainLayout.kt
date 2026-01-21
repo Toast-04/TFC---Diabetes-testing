@@ -16,9 +16,6 @@ import androidx.compose.ui.unit.sp
 fun MainLayout(modifier: Modifier = Modifier,
                viewModel: MainViewModel //<-- Parametro nuevo para el ViewModel
 ) {
-
-    // Variables para los campos de texto
-    var campo1 by remember { mutableStateOf("") }
     //La variables que aqui habian ahora son innecesarias ya que van en el viewmodel
 
     // Interior de la pantalla principal
@@ -69,28 +66,27 @@ fun MainLayout(modifier: Modifier = Modifier,
             )
 
             // Selector ratio
-
-            /**
             OptimizedDropdown(
-                value = campoDropdown2,
-                onValueChange = { campoDropdown2 = it },
-                label = "Dropdown 2",
-                options = opciones,
+                value = viewModel.ratioSeleccionada,
+                onValueChange = { nuevaRatio ->
+                    viewModel.onRatioSeleccionada(nuevaRatio)
+                },
+                label = "Selecciona el momento del dia",
+                options = viewModel.opcionesRatio,
                 modifier = Modifier.weight(1f)
             )
-            */
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Campo para la cantidad de gramps
         OutlinedTextField(
-            value = campo1,
+            value = viewModel.campoGramos,
 
             // Formato adecuado para dentro de textfield *CAMBIAR SI QUIERES*
             onValueChange = {
                 if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$")))
-                    campo1 = it
+                    viewModel.campoGramos = it
             },
             placeholder = { Text("Gramos") },
             label = { Text("Gramos") },

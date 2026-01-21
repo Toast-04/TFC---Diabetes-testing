@@ -24,18 +24,26 @@ class MainViewModel(
     var ratioMediodia by mutableStateOf("")
     var ratioNoche by mutableStateOf("")
 
-    //Estado : Lista de Tablas (Categorias)
+    var campoGramos by mutableStateOf("")
+
+    //Lista de Tablas (Categorias)
     var listaTablas by mutableStateOf(emptyList<String>())
         private set
     var tablaSeleccionada by mutableStateOf("")
         private set
 
-    //2do Estado : Lista de Elementos de la tabla seleccionada
+    //Lista de Elementos de la tabla seleccionada
     var listaAlimentos by mutableStateOf(emptyList<String>())
         private set
     var alimentoSeleccionado by mutableStateOf("")
         private set
 
+    //Lista para opciones de ratio
+    val opcionesRatio = listOf("Mañana", "Mediodia", "Noche")
+
+    //Estado para la etiqueta seleccionada
+    var ratioSeleccionada by mutableStateOf("")
+        private set
 
     init {
         cargarTablas()
@@ -85,7 +93,7 @@ class MainViewModel(
             listaTablas = dbHelper.ObtenerTablas()
         }
     }
-
+    //Funcion para tabla seleccionada
     fun onTablaSeleccionada(tabla: String) {
         tablaSeleccionada = tabla
         alimentoSeleccionado = "" //Reiniciamos el alimento al cambiar de tabla
@@ -96,9 +104,25 @@ class MainViewModel(
         }
     }
 
+    //Funcion para alimento seleccionado
     fun onAlimentoSeleccionado(alimento: String) {
         alimentoSeleccionado = alimento
     }
+
+    //Funcion para para la ratio seleccionada
+    fun onRatioSeleccionada(etiqueta: String) {
+        ratioSeleccionada = etiqueta
+    }
+
+    //Propiedad auxiliar para obtener el valor de la ratio segun la seleccion
+    val ratioValorActual: String
+        get() = when (ratioSeleccionada) {
+            "Mañana" -> ratioManana
+            "Mediodia" -> ratioMediodia
+            "Noche" -> ratioNoche
+            else -> ""
+        }
+
 
 
 }

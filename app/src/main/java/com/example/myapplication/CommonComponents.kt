@@ -229,3 +229,4 @@ fun calculoAzucar(azucarActual: Int, azucarObjetivo: Int, factorSensibilidad: In
     //Algoritmo para redondear a 0.5
     return round(calculo * 2) / 2
 }
+
