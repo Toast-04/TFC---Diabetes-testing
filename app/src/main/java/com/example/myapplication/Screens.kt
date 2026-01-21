@@ -7,7 +7,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -23,10 +22,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import kotlin.math.round
 
 @Composable
 fun ConfiguracionScreen(
+    viewModel: MainViewModel,
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit,
     fontSizeOption: String,
@@ -76,7 +75,7 @@ fun ConfiguracionScreen(
                     val options = listOf("Pequeña", "Normal", "Grande")
                     options.forEach { option ->
                         Button(
-                            onClick = { onFontSizeChange(option) },
+                            onClick = { viewModel.updateFontSize(option) },
                             modifier = Modifier
                                 .weight(1f)
                                 .height(56.dp),
@@ -105,8 +104,8 @@ fun ConfiguracionScreen(
             ) {
                 Text("Modo dislexia", style = MaterialTheme.typography.bodyLarge)
                 Switch(
-                    checked = modoAccesible,
-                    onCheckedChange = onModoAccesibleChange
+                    checked = viewModel.isDislexiaMode,
+                    onCheckedChange = {viewModel.updateModoDislexia(it)}
                 )
             }
         }
@@ -122,13 +121,13 @@ fun ConfiguracionScreen(
             ) {
                 Text("Modo Oscuro", style = MaterialTheme.typography.bodyLarge)
                 Switch(
-                    checked = isDarkTheme,
-                    onCheckedChange = onThemeChange
+                    checked = viewModel.isDarkTheme,
+                    onCheckedChange = {viewModel.updateDarkMode(it)}
                 )
             }
         }
 
-        // --- Spacer final ---
+        // --- Spacer ---
         item { Spacer(modifier = Modifier.height(40.dp)) }
 
         // Ratio label
@@ -160,7 +159,7 @@ fun ConfiguracionScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Activar ratio", style = MaterialTheme.typography.bodyLarge)
+                    Text("Ver ratio", style = MaterialTheme.typography.bodyLarge)
                     Switch(
                         checked = isRatioActive,
                         onCheckedChange = { isRatioActive = it }
@@ -170,27 +169,81 @@ fun ConfiguracionScreen(
                 if (isRatioActive) {
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    var manana by remember { mutableStateOf("") }
-                    var mediodia by remember { mutableStateOf("") }
-                    var noche by remember { mutableStateOf("") }
-
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         OutlinedTextField(
-                            value = manana,
-                            onValueChange = { manana = it },
+                            value = viewModel.ratioManana,
+                            onValueChange = { viewModel.updateRatioManana(it) }, // Llama a la función que guarda
                             label = { Text("Mañana") },
                             modifier = Modifier.fillMaxWidth()
                         )
                         OutlinedTextField(
-                            value = mediodia,
-                            onValueChange = { mediodia = it },
+                            value = viewModel.ratioMediodia,
+                            onValueChange = { viewModel.updateRatioMediodia(it) }, // Llama a la función que guarda
                             label = { Text("Mediodía") },
                             modifier = Modifier.fillMaxWidth()
                         )
                         OutlinedTextField(
-                            value = noche,
-                            onValueChange = { noche = it },
+                            value = viewModel.ratioNoche,
+                            onValueChange = { viewModel.updateRatioNoche(it) }, // Llama a la función que guarda
                             label = { Text("Noche") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+        }
+
+        // --- Spacer ---
+        item { Spacer(modifier = Modifier.height(40.dp)) }
+
+        // Factor de Sensibilidad label
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .requiredHeight(60.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Factor de sensibilidad",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        // --- Switch para las Factor de sensibilidad ---
+        item {
+            var isFactorActive by remember { mutableStateOf(false) }
+
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Ver factor de sensibilidad", style = MaterialTheme.typography.bodyLarge)
+                    Switch(
+                        checked = isFactorActive,
+                        onCheckedChange = { isFactorActive = it }
+                    )
+                }
+
+                if (isFactorActive) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedTextField(
+                            value = viewModel.factorSensibilidad,
+                            onValueChange = {
+                                if (it.isEmpty() || it.matches(Regex("^\\d+$"))) {
+                                    viewModel.updateFactor(it) // Llama a la función que guarda
+                                }
+                            },
+                            label = { Text("Factor de Sensibilidad") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -395,7 +448,7 @@ fun ModoRecetaScreen() {
 }
 
 @Composable
-fun BajarAzucarScreen() {
+fun BajarAzucarScreen(viewModel: MainViewModel) {
     //Estados para los inputs de azucar
     var azucarActual by remember { mutableStateOf("") }
     var azucarObjetivo by remember { mutableStateOf("") }
@@ -454,9 +507,11 @@ fun BajarAzucarScreen() {
                 //Lógica del botón
                 val actual = azucarActual.toIntOrNull() ?: 0
                 val objetivo = azucarObjetivo.toIntOrNull() ?: 0
+                val sensibilidad = viewModel.factorSensibilidad.toIntOrNull() ?: 0
 
-                //Calculamos
-                val resultadoDouble = calculoAzucar(actual, objetivo)
+
+                //Calculamos !!HACER CONTROL POR SI FACTOR DE SENSIBILIDAD ESTA VACIO!!
+                val resultadoDouble = calculoAzucar(actual, objetivo, sensibilidad)
 
                 //Lógica visual, si acaba en .0 se muestra numero entero, si acaba .5 se muestra como decimal
                 val resultado = if (resultadoDouble % 1.0 == 0.0) {
@@ -519,11 +574,3 @@ class NotificationReceiver : android.content.BroadcastReceiver() {
     }
 }
 
-//Función para la lógica del caluclo
-fun calculoAzucar(azucarActual: Int, azucarObjetivo: Int): Double {
-    //Calculo de la correción de azucar
-    val calculo = ((azucarActual - azucarObjetivo)/50.0)
-
-    //Algoritmo para redondear a 0.5
-    return round(calculo * 2) / 2
-}

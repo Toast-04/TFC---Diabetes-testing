@@ -113,6 +113,7 @@ fun MyApp(
                         composable("main") { MainLayout(viewModel = viewModel) }
                         composable("configuracion") {
                             ConfiguracionScreen(
+                                viewModel = viewModel,
                                 isDarkTheme = isDarkTheme,
                                 onThemeChange = onThemeChange,
                                 fontSizeOption = fontSizeOption,
@@ -123,7 +124,8 @@ fun MyApp(
                         }
                         composable("notificaciones") { NotificacionesScreen(navController, context = LocalContext.current)}
                         composable("modo_receta") { ModoRecetaScreen() }
-                        composable("bajar_azucar") { BajarAzucarScreen() }
+                        composable("bajar_azucar") {
+                            BajarAzucarScreen(viewModel = viewModel) }
                     }
 
                     // Overlay de informacion

@@ -24,6 +24,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import kotlin.math.round
 
 // Caja que se encarga de mostrar el resultado (llamar a el)
 @Composable
@@ -216,4 +217,15 @@ fun pedirPermisoNotificaciones(activity: Activity) {
             )
         }
     }
+}
+
+//Función para la lógica del caluclo
+fun calculoAzucar(azucarActual: Int, azucarObjetivo: Int, factorSensibilidad: Int): Double {
+    if (factorSensibilidad <= 0) return 0.0 //Evitamos la división por 0
+
+    //Calculo de la correción de azucar
+    val calculo = ((azucarActual - azucarObjetivo).toDouble() /factorSensibilidad)
+
+    //Algoritmo para redondear a 0.5
+    return round(calculo * 2) / 2
 }

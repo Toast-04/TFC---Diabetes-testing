@@ -57,7 +57,7 @@ class DbHelper(val context: Context) : SQLiteOpenHelper(context, "diabetes_tabla
 
         //Consultamos la tabla maestra, excluyendo tablas del sistema y temporales
         val query = """
-            SELECT REPLACE(name, '_', ' ') AS name
+            SELECT name
             FROM sqlite_master 
             WHERE type='table' 
             AND name NOT LIKE 'android_%' 

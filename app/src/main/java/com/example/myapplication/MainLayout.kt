@@ -38,12 +38,16 @@ fun MainLayout(modifier: Modifier = Modifier,
 
         //DropDown Principal, selector de clase de alimentos
         OptimizedDropdown(
-            value = viewModel.tablaSeleccionada,
+            value = viewModel.tablaSeleccionada.replace('_', ' '),
             onValueChange = { nuevaTabla ->
-                viewModel.onTablaSeleccionada(nuevaTabla)
+                //Cambia los '_' por espacios en el listado de tablas
+                val nombreReal = viewModel.listaTablas.find { it.replace('_', ' ') == nuevaTabla }
+                if (nombreReal != null) {
+                    viewModel.onTablaSeleccionada(nombreReal)
+                }
             },
             label = "Seleccionar Categoría",
-            options = viewModel.listaTablas,
+            options = viewModel.listaTablas.map {it.replace('_', ' ')},
             modifier = Modifier.fillMaxWidth()
         )
 

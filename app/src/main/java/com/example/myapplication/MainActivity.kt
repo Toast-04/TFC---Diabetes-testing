@@ -19,8 +19,9 @@ class MainActivity : ComponentActivity() {
         val dbHelper = DbHelper(this)
         dbHelper.checkAndCopyDatabase() //<-- Esto muevo el archivo .db a la carpeta correcta
 
+        val factory = MainViewModelFactory(dbHelper, SettingsManager(this))
         //Creamos el ViewModel
-        val mainViewModel = MainViewModel(dbHelper)
+        val mainViewModel = MainViewModel(dbHelper, SettingsManager(this))
 
         crearCanalNotificacion(this)
         pedirPermisoNotificaciones(this)
@@ -36,9 +37,9 @@ class MainActivity : ComponentActivity() {
 
             // Aplicación con el tema y el modo accesible proporcionados
             AppTheme(
-                darkTheme = isDarkTheme,
-                accesible = modoAccesible,
-                fontSizeOption = fontSizeOption, // * Se puede optimizar *
+                darkTheme = mainViewModel.isDarkTheme,
+                accesible = mainViewModel.isDislexiaMode,
+                fontSizeOption = mainViewModel.fontSizeOption, // * Se puede optimizar *
                 dynamicColor = false // No cambiar
             ) {
 
@@ -49,13 +50,12 @@ class MainActivity : ComponentActivity() {
                 ) {
                     // Composición de la app *NO TOCAR*
                     MyApp(
-                        isDarkTheme = isDarkTheme,
-                        onThemeChange = { isDarkTheme = it },
-                        modoAccesible = modoAccesible,
-                        onModoAccesibleChange = { modoAccesible = it },
-                        fontSizeOption = fontSizeOption,
-                        onFontSizeChange = { fontSizeOption = it },
-                        //Pasamos el viewModel a la app
+                        isDarkTheme = mainViewModel.isDarkTheme,
+                        onThemeChange = { mainViewModel.updateDarkMode(it) }, // Guarda en disco
+                        modoAccesible = mainViewModel.isDislexiaMode,
+                        onModoAccesibleChange = { mainViewModel.updateModoDislexia(it) }, // Guarda en disco
+                        fontSizeOption = mainViewModel.fontSizeOption,
+                        onFontSizeChange = { mainViewModel.updateFontSize(it) }, // Guarda en disco
                         viewModel = mainViewModel
                     )
                 }
