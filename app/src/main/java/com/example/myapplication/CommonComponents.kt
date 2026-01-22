@@ -195,7 +195,7 @@ fun mostrarNotificacion(context: Context, titulo: String, mensaje: String) {
 
     with(NotificationManagerCompat.from(context)) {
         if (ActivityCompat.checkSelfPermission(
-                this as Context,
+                context,
                 Manifest.permission.POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED
         ) {

@@ -1,6 +1,12 @@
 package com.example.myapplication
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -22,6 +28,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import java.util.Calendar
 
 @Composable
 fun ConfiguracionScreen(
@@ -535,42 +542,70 @@ fun BajarAzucarScreen(viewModel: MainViewModel) {
 }
 
 fun scheduleNotification(context: Context, hour: Int, minute: Int) {
-    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
-    val intent = android.content.Intent(context, NotificationReceiver::class.java)
-    val pendingIntent = android.app.PendingIntent.getBroadcast(
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+    // Comprobar permiso de alarmas exactas en Android 12+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (!alarmManager.canScheduleExactAlarms()) {
+            Toast.makeText(
+                context,
+                "Activa el permiso de alarmas exactas en Ajustes",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+    }
+
+    // Intent para el BroadcastReceiver, pasamos hora y minuto
+    val intent = Intent(context, NotificationReceiver::class.java).apply {
+        putExtra("HOUR", hour)
+        putExtra("MINUTE", minute)
+    }
+
+    val pendingIntent = PendingIntent.getBroadcast(
         context,
         0,
         intent,
-        android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
-    val calendar = java.util.Calendar.getInstance().apply {
-        set(java.util.Calendar.HOUR_OF_DAY, hour)
-        set(java.util.Calendar.MINUTE, minute)
-        set(java.util.Calendar.SECOND, 0)
+    // Configurar calendario con hora y minuto seleccionados
+    val calendar = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, hour)
+        set(Calendar.MINUTE, minute)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
     }
 
-    // Si la hora ya pasó, programa para el día siguiente
+    // Si la hora ya pasó, programar para el día siguiente
     if (calendar.timeInMillis < System.currentTimeMillis()) {
-        calendar.add(java.util.Calendar.DAY_OF_YEAR, 1)
+        calendar.add(Calendar.DAY_OF_YEAR, 1)
     }
 
-    alarmManager.setExact(
-        android.app.AlarmManager.RTC_WAKEUP,
+    // Programar alarma exacta
+    alarmManager.setExactAndAllowWhileIdle(
+        AlarmManager.RTC_WAKEUP,
         calendar.timeInMillis,
         pendingIntent
     )
 }
 
-class NotificationReceiver : android.content.BroadcastReceiver() {
+class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: android.content.Intent?) {
         context?.let {
+            // Mostrar la notificación
             mostrarNotificacion(
                 it,
                 "Recordatorio",
                 "¡Es hora de tu recordatorio!"
             )
+
+            // Reprogramar para el día siguiente
+            val hour = intent?.getIntExtra("HOUR", 9) ?: 9
+            val minute = intent?.getIntExtra("MINUTE", 0) ?: 0
+            scheduleNotification(it, hour, minute)
         }
     }
 }
+
 
