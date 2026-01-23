@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.sp
 fun MainLayout(modifier: Modifier = Modifier,
                viewModel: MainViewModel //<-- Parametro nuevo para el ViewModel
 ) {
+
+    var textoResultado by remember { mutableStateOf("") }
     //La variables que aqui habian ahora son innecesarias ya que van en el viewmodel
 
     // Interior de la pantalla principal
@@ -99,13 +101,35 @@ fun MainLayout(modifier: Modifier = Modifier,
         Spacer(modifier = Modifier.height(72.dp))
 
         // Caja de resultado
-        ResultBox(text = "RESULTADO")
+        ResultBox(textoResultado)
+
 
         Spacer(modifier = Modifier.weight(0.8f))
 
         // Boton para hacer la operacion
         Button(
-            onClick = {},
+            onClick = {
+                // USAMOS EL HC QUE YA BUSCÓ EL VIEWMODEL
+                val alimentoHC = viewModel.hcSeleccionado
+
+                // USAMOS EL VALOR NUMÉRICO DEL RATIO (ratioValorActual)
+                val ratio = viewModel.ratioValorActual.toDoubleOrNull() ?: 0.0
+
+                val gramos = viewModel.campoGramos.toIntOrNull() ?: 0
+
+                if (alimentoHC > 0) {
+                    val resultadoDouble = calculoRaciones(alimentoHC, ratio, gramos)
+
+                    val resultado = if (resultadoDouble % 1.0 == 0.0) {
+                        resultadoDouble.toInt().toString()
+                    } else {
+                        resultadoDouble.toString()
+                    }
+                    textoResultado = "Has de pincharte $resultado UI"
+                } else {
+                    textoResultado = "Selecciona un alimento válido"
+                }
+            },
             shape = RoundedCornerShape(50),
             modifier = Modifier.size(120.dp)
         ) {

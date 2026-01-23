@@ -94,4 +94,23 @@ class DbHelper(val context: Context) : SQLiteOpenHelper(context, "diabetes_tabla
         return lista
     }
 
+    fun obtenerHcAlimento(nombreTabla: String, nombreAlimento: String): Int {
+        var hc = 0
+        val db = this.readableDatabase
+        try {
+            // Buscamos el valor de la columna HC para el alimento seleccionado
+            val cursor = db.rawQuery(
+                "SELECT HC FROM \"$nombreTabla\" WHERE Alimento = ?",
+                arrayOf(nombreAlimento)
+            )
+            if (cursor.moveToFirst()) {
+                hc = cursor.getInt(0)
+            }
+            cursor.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return hc
+    }
+
 }

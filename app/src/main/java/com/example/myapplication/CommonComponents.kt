@@ -230,3 +230,13 @@ fun calculoAzucar(azucarActual: Int, azucarObjetivo: Int, factorSensibilidad: In
     return round(calculo * 2) / 2
 }
 
+//Funcion para calcular las raciones
+fun calculoRaciones(aliemento: Int, ratio: Double, gramos: Int): Double{
+    //Calculo de las raciones
+    val calculo = (gramos/aliemento) * ratio
+
+    //Algoritmo para redondear a 0.5
+    return round(calculo * 2) / 2
+}
+
+

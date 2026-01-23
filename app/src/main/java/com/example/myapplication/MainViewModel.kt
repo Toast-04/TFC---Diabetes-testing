@@ -16,7 +16,7 @@ class MainViewModel(
     private val settingsManager: SettingsManager
     ) : ViewModel() {
 
-    //Estados persistentes
+    //Estados persistentes para pagina config
     var factorSensibilidad by mutableStateOf("")
     var isDarkTheme by mutableStateOf(false)
     var isDislexiaMode by mutableStateOf(false)
@@ -25,6 +25,7 @@ class MainViewModel(
     var ratioMediodia by mutableStateOf("")
     var ratioNoche by mutableStateOf("")
 
+    //Variable para gramos mainPant
     var campoGramos by mutableStateOf("")
 
     //Lista de Tablas (Categorias)
@@ -54,6 +55,10 @@ class MainViewModel(
         private set
 
     var notificationMinute by mutableStateOf(0)
+        private set
+
+    //Variable para guardar HC
+    var hcSeleccionado by mutableStateOf(0)
         private set
 
 
@@ -138,12 +143,18 @@ class MainViewModel(
     //Funcion para alimento seleccionado
     fun onAlimentoSeleccionado(alimento: String) {
         alimentoSeleccionado = alimento
+
+        // Cada vez que se selecciona un nombre, buscamos su HC en la DB
+        viewModelScope.launch(Dispatchers.IO) {
+            hcSeleccionado = dbHelper.obtenerHcAlimento(tablaSeleccionada, alimento)
+        }
     }
 
     //Funcion para para la ratio seleccionada
     fun onRatioSeleccionada(etiqueta: String) {
         ratioSeleccionada = etiqueta
     }
+
 
     // Funcion notificaciones
     fun updateNotificationsEnabled(enabled: Boolean, context: Context) {
@@ -184,8 +195,6 @@ class MainViewModel(
             "Noche" -> ratioNoche
             else -> ""
         }
-
-
 
 }
 
