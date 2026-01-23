@@ -438,45 +438,177 @@ fun InformacionScreen(onClose: () -> Unit) {
 }
 
 @Composable
-fun ModoRecetaScreen() {
-    var campo1 by remember { mutableStateOf("") }
+fun ModoRecetaScreen(modifier: Modifier = Modifier,
+               viewModel: MainViewModel
+) {
 
+    var textoResultado by remember { mutableStateOf("") }
+
+    //Guardamos aqui el último calculo para poder sumarlo
+    var ultimoCalculo by remember { mutableStateOf(0.0) }
+
+
+    // Interior de la pantalla principal
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
-            .padding(20.dp),
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
         Text(
-            "Modo Receta",
+            "Modo receta",
             fontSize = 26.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        OutlinedTextField(
-            value = campo1,
-            onValueChange = {
-                if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) campo1 = it
+        //DropDown Principal, selector de clase de alimentos
+        OptimizedDropdown(
+            value = viewModel.tablaSeleccionada.replace('_', ' '),
+            onValueChange = { nuevaTabla ->
+                //Cambia los '_' por espacios en el listado de tablas
+                val nombreReal = viewModel.listaTablas.find { it.replace('_', ' ') == nuevaTabla }
+                if (nombreReal != null) {
+                    viewModel.onTablaSeleccionada(nombreReal)
+                }
             },
+            label = "Seleccionar Categoría",
+            options = viewModel.listaTablas.map {it.replace('_', ' ')},
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // DropDown Secundario, selector de alimentos
+            OptimizedDropdown(
+                value = viewModel.alimentoSeleccionado,
+                onValueChange = { nuevoAlimento ->
+                    viewModel.onAlimentoSeleccionado(nuevoAlimento)
+                },
+                label = "Seleccionar Alimento",
+                options = viewModel.listaAlimentos, // <-- Esto se actualiza solo
+                modifier = Modifier.weight(1f),
+            )
+
+            // Selector ratio
+            OptimizedDropdown(
+                value = viewModel.ratioSeleccionada,
+                onValueChange = { nuevaRatio ->
+                    viewModel.onRatioSeleccionada(nuevaRatio)
+                },
+                label = "Selecciona el momento del dia",
+                options = viewModel.opcionesRatio,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Campo para la cantidad de gramps
+        OutlinedTextField(
+            value = viewModel.campoGramos,
+
+            // Formato adecuado para dentro de textfield *CAMBIAR SI QUIERES*
+            onValueChange = {
+                if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$")))
+                    viewModel.campoGramos = it
+            },
+            placeholder = { Text("Gramos") },
             label = { Text("Gramos") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            singleLine = true,
+            shape = RoundedCornerShape(4.dp),
             modifier = Modifier.width(250.dp)
         )
 
-        Spacer(modifier = Modifier.height(72.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        ResultBox("RESULTADO RECETA")
+        // Caja de resultado
+        ResultBox(textoResultado)
+
+        //Mostrar el Total acumulado de la receta
+        if (viewModel.totalAcumulado > 0) {
+            Text(
+                text = "Tu receta completa son : ${viewModel.totalAcumulado} UI",
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
+
 
         Spacer(modifier = Modifier.weight(0.8f))
 
-        Button(
-            onClick = {},
-            shape = RoundedCornerShape(50),
-            modifier = Modifier.size(120.dp)
-        ) {
-            Text("OK")
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            // Boton para hacer la operacion
+            Button(
+                onClick = {
+                    // USAMOS EL HC QUE YA BUSCÓ EL VIEWMODEL
+                    val alimentoHC = viewModel.hcSeleccionado
+
+                    // USAMOS EL VALOR NUMÉRICO DEL RATIO (ratioValorActual)
+                    val ratio = viewModel.ratioValorActual.toDoubleOrNull() ?: 0.0
+
+                    val gramos = viewModel.campoGramos.toIntOrNull() ?: 0
+
+                    if (alimentoHC > 0) {
+                        val resultadoDouble = calculoRaciones(alimentoHC, ratio, gramos)
+
+                        ultimoCalculo = resultadoDouble
+                        textoResultado = "Actual: ${if (resultadoDouble % 1.0 == 0.0) resultadoDouble.toInt() else resultadoDouble} UI"
+                        } else {
+                           textoResultado = "Selecciona un alimento válido"
+                        }
+                },
+                shape = RoundedCornerShape(50),
+                modifier = Modifier.size(120.dp)
+            ) {
+                Text("OK")
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            //Boton +
+            Button(
+                onClick = {
+                    if(ultimoCalculo > 0) {
+                        viewModel.añadirAlTotal(ultimoCalculo)
+                        ultimoCalculo = 0.0
+                        textoResultado = "Añadido"
+                    }
+                          },
+                enabled = ultimoCalculo > 0,
+                shape = RoundedCornerShape(50),
+                modifier = Modifier.size(120.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Text("+")
+            }
+        }
+
+        TextButton(
+            onClick = {
+                viewModel.limpiarTotal()
+                textoResultado = ""
+                ultimoCalculo = 0.0
+            },
+            modifier = Modifier.padding(top = 8.dp)
+        ){
+            Text("Limpiar Receta")
         }
 
         Spacer(modifier = Modifier.height(92.dp))

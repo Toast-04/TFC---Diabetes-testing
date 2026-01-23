@@ -61,6 +61,10 @@ class MainViewModel(
     var hcSeleccionado by mutableStateOf(0)
         private set
 
+    //Variable para total acumulado del modo receta
+    var totalAcumulado by mutableStateOf(0.0)
+        private set
+
 
     init {
         cargarTablas()
@@ -195,6 +199,15 @@ class MainViewModel(
             "Noche" -> ratioNoche
             else -> ""
         }
+
+    //Funcion para añadir al total acumulado
+    fun añadirAlTotal(valor: Double) {
+        totalAcumulado += valor
+    }
+
+    fun limpiarTotal() {
+        totalAcumulado = 0.0
+    }
 
 }
 

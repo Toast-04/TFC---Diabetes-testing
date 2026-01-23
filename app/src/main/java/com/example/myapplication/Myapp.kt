@@ -123,7 +123,7 @@ fun MyApp(
                             )
                         }
                         composable("notificaciones") { NotificacionesScreen(viewModel = viewModel, navController = navController, context = LocalContext.current)}
-                        composable("modo_receta") { ModoRecetaScreen() }
+                        composable("modo_receta") { ModoRecetaScreen(viewModel = viewModel)}
                         composable("bajar_azucar") {
                             BajarAzucarScreen(viewModel = viewModel) }
                     }
