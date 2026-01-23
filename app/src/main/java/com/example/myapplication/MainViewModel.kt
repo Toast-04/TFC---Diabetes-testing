@@ -1,6 +1,7 @@
 package com.example.myapplication
 
 import DbHelper
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -45,6 +46,17 @@ class MainViewModel(
     var ratioSeleccionada by mutableStateOf("")
         private set
 
+    // Estado notificaciones
+    var notificationsEnabled by mutableStateOf(false)
+        private set
+
+    var notificationHour by mutableStateOf(9)
+        private set
+
+    var notificationMinute by mutableStateOf(0)
+        private set
+
+
     init {
         cargarTablas()
         //Recogemos todos los valores de DataStore
@@ -78,6 +90,25 @@ class MainViewModel(
                 ratioNoche = noche?: ""
             }
         }
+
+        viewModelScope.launch {
+            settingsManager.notificationsEnabledFlow.collect {
+                notificationsEnabled = it
+            }
+        }
+
+        viewModelScope.launch {
+            settingsManager.notificationHourFlow.collect {
+                notificationHour = it
+            }
+        }
+
+        viewModelScope.launch {
+            settingsManager.notificationMinuteFlow.collect {
+                notificationMinute = it
+            }
+        }
+
 
     }
 
@@ -113,6 +144,37 @@ class MainViewModel(
     fun onRatioSeleccionada(etiqueta: String) {
         ratioSeleccionada = etiqueta
     }
+
+    // Funcion notificaciones
+    fun updateNotificationsEnabled(enabled: Boolean, context: Context) {
+        notificationsEnabled = enabled
+        viewModelScope.launch {
+            settingsManager.saveNotificationsEnabled(enabled)
+        }
+
+        if (!enabled) {
+            cancelNotification(context)
+        } else {
+            scheduleNotification(context, notificationHour, notificationMinute)
+        }
+    }
+
+    // Fncion para la hora de las notificaciones
+    fun updateNotificationTime(context: Context, hour: Int, minute: Int) {
+        notificationHour = hour
+        notificationMinute = minute
+
+        viewModelScope.launch {
+            // Guardamos ambos juntos en DataStore
+            settingsManager.saveNotificationTime(hour, minute)
+        }
+
+        // Programamos la notificación si está activada
+        if (notificationsEnabled) {
+            scheduleNotification(context, hour, minute)
+        }
+    }
+
 
     //Propiedad auxiliar para obtener el valor de la ratio segun la seleccion
     val ratioValorActual: String

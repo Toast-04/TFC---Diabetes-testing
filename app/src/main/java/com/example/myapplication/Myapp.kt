@@ -122,7 +122,7 @@ fun MyApp(
                                 onModoAccesibleChange = onModoAccesibleChange
                             )
                         }
-                        composable("notificaciones") { NotificacionesScreen(navController, context = LocalContext.current)}
+                        composable("notificaciones") { NotificacionesScreen(viewModel = viewModel, navController = navController, context = LocalContext.current)}
                         composable("modo_receta") { ModoRecetaScreen() }
                         composable("bajar_azucar") {
                             BajarAzucarScreen(viewModel = viewModel) }

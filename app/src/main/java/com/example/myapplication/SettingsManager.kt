@@ -18,8 +18,12 @@ class SettingsManager (context: Context) {
         val FONT_SIZE_KEY = stringPreferencesKey("font_size")
         val RATIO_MANANA = stringPreferencesKey("ratio_manana")
         val RATIO_MEDIODIA = stringPreferencesKey("ratio_mediodia")
-
         val RATIO_NOCHE = stringPreferencesKey("ratio_noche")
+
+        // --- Notificaciones ---
+        val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
+        val NOTIFICATION_HOUR = intPreferencesKey("notification_hour")
+        val NOTIFICATION_MINUTE = intPreferencesKey("notification_minute")
     }
 
     //Lectura de flujos
@@ -31,6 +35,11 @@ class SettingsManager (context: Context) {
     val ratioMediodiaFlow: Flow<String?> = dataStore.data.map { it[RATIO_MEDIODIA] ?: ""}
     val ratioNocheFlow: Flow<String?> = dataStore.data.map { it[RATIO_NOCHE] ?: ""}
 
+    // --- Flujos de notificaciones ---
+    val notificationsEnabledFlow: Flow<Boolean> = dataStore.data.map { it[NOTIFICATIONS_ENABLED] ?: false }
+    val notificationHourFlow: Flow<Int> = dataStore.data.map { it[NOTIFICATION_HOUR] ?: 9 }
+    val notificationMinuteFlow: Flow<Int> = dataStore.data.map { it[NOTIFICATION_MINUTE] ?: 0 }
+
     //Funciones para guardar
     suspend fun saveFactor(value: String) {dataStore.edit{it [FACTOR_KEY] = value}}
     suspend fun saveDarkMode(enabled: Boolean) { dataStore.edit { it[DARK_MODE_KEY] = enabled } }
@@ -39,4 +48,16 @@ class SettingsManager (context: Context) {
     suspend fun saveRatioManana(value: String) {dataStore.edit{it [RATIO_MANANA] = value}}
     suspend fun saveRatioMediodia(value: String) {dataStore.edit{it [RATIO_MEDIODIA] = value}}
     suspend fun saveRatioNoche(value: String) {dataStore.edit{it [RATIO_NOCHE] = value}}
+    // --- Funciones de guardado para notificaciones ---
+    suspend fun saveNotificationsEnabled(enabled: Boolean) {
+        dataStore.edit { it[NOTIFICATIONS_ENABLED] = enabled }
+    }
+
+    suspend fun saveNotificationTime(hour: Int, minute: Int) {
+        dataStore.edit {
+            it[NOTIFICATION_HOUR] = hour
+            it[NOTIFICATION_MINUTE] = minute
+        }
+    }
+
 }

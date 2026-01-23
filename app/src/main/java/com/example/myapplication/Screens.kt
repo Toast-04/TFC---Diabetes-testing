@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import java.util.Calendar
 
@@ -261,10 +262,25 @@ fun ConfiguracionScreen(
 }
 
 @Composable
-fun NotificacionesScreen(navController: NavController, context: Context) {
+fun NotificacionesScreen(viewModel: MainViewModel, navController: NavController, context: Context) {
     val context = LocalContext.current
-    var isNotificationsActive by remember { mutableStateOf(false) }
-    var selectedTime by remember { mutableStateOf("") }
+    val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+
+    // Estado del switch según SharedPreferences
+    var isNotificationsActive by remember {
+        mutableStateOf(prefs.getBoolean("notifications_enabled", false))
+    }
+
+    // Hora seleccionada como string HH:mm
+    var selectedTime by remember {
+        mutableStateOf(
+            String.format(
+                "%02d:%02d",
+                prefs.getInt("notification_hour", 9),
+                prefs.getInt("notification_minute", 0)
+            )
+        )
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -272,7 +288,6 @@ fun NotificacionesScreen(navController: NavController, context: Context) {
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // --- Título ---
         item {
             Box(
                 modifier = Modifier
@@ -288,7 +303,7 @@ fun NotificacionesScreen(navController: NavController, context: Context) {
             }
         }
 
-        // --- Activar notificaciones ---
+        // --- Switch para activar notificaciones ---
         item {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(
@@ -300,7 +315,15 @@ fun NotificacionesScreen(navController: NavController, context: Context) {
 
                     Switch(
                         checked = isNotificationsActive,
-                        onCheckedChange = { isNotificationsActive = it }
+                        onCheckedChange = { enabled ->
+                            isNotificationsActive = enabled
+
+                            // Guardamos el estado en SharedPreferences
+                            prefs.edit().putBoolean("notifications_enabled", enabled).apply()
+
+                            // Cancelar notificación si se apaga
+                            if (!enabled) cancelNotification(context)
+                        }
                     )
                 }
 
@@ -311,13 +334,12 @@ fun NotificacionesScreen(navController: NavController, context: Context) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp) // un pequeño espacio entre label y TextField
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Label a la izquierda
                         Text(
-                            text = "Recordatorio Lenta:",
+                            text = "Recordatorio:",
                             style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.weight(0.4f) // ocupa menos espacio
+                            modifier = Modifier.weight(0.4f)
                         )
 
                         OutlinedTextField(
@@ -328,20 +350,27 @@ fun NotificacionesScreen(navController: NavController, context: Context) {
                             modifier = Modifier.fillMaxWidth(0.5f),
                             trailingIcon = {
                                 IconButton(onClick = {
-                                    val calendar = java.util.Calendar.getInstance()
+                                    val calendar = Calendar.getInstance()
                                     android.app.TimePickerDialog(
                                         context,
                                         { _, hour: Int, minute: Int ->
-                                            // Guardamos la hora seleccionada
+
                                             selectedTime = String.format("%02d:%02d", hour, minute)
 
-                                            // Programamos la notificación solo si el switch está activo
+                                            // Guardamos hora y minuto en SharedPreferences
+                                            prefs.edit()
+                                                .putInt("notification_hour", hour)
+                                                .putInt("notification_minute", minute)
+                                                .apply()
+
+                                            // Programamos la notificación si el switch está activo
                                             if (isNotificationsActive) {
                                                 scheduleNotification(context, hour, minute)
                                             }
+
                                         },
-                                        calendar.get(java.util.Calendar.HOUR_OF_DAY),
-                                        calendar.get(java.util.Calendar.MINUTE),
+                                        calendar.get(Calendar.HOUR_OF_DAY),
+                                        calendar.get(Calendar.MINUTE),
                                         true
                                     ).show()
                                 }) {
@@ -542,25 +571,8 @@ fun BajarAzucarScreen(viewModel: MainViewModel) {
 }
 
 fun scheduleNotification(context: Context, hour: Int, minute: Int) {
-    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
-    // Comprobar permiso de alarmas exactas en Android 12+
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        if (!alarmManager.canScheduleExactAlarms()) {
-            Toast.makeText(
-                context,
-                "Activa el permiso de alarmas exactas en Ajustes",
-                Toast.LENGTH_LONG
-            ).show()
-            return
-        }
-    }
-
-    // Intent para el BroadcastReceiver, pasamos hora y minuto
-    val intent = Intent(context, NotificationReceiver::class.java).apply {
-        putExtra("HOUR", hour)
-        putExtra("MINUTE", minute)
-    }
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+    val intent = Intent(context, NotificationReceiver::class.java)
 
     val pendingIntent = PendingIntent.getBroadcast(
         context,
@@ -569,20 +581,20 @@ fun scheduleNotification(context: Context, hour: Int, minute: Int) {
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
-    // Configurar calendario con hora y minuto seleccionados
     val calendar = Calendar.getInstance().apply {
         set(Calendar.HOUR_OF_DAY, hour)
         set(Calendar.MINUTE, minute)
         set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
+
+        if (timeInMillis <= System.currentTimeMillis()) {
+            add(Calendar.DAY_OF_YEAR, 1)
+        }
     }
 
-    // Si la hora ya pasó, programar para el día siguiente
-    if (calendar.timeInMillis < System.currentTimeMillis()) {
-        calendar.add(Calendar.DAY_OF_YEAR, 1)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (!alarmManager.canScheduleExactAlarms()) return
     }
 
-    // Programar alarma exacta
     alarmManager.setExactAndAllowWhileIdle(
         AlarmManager.RTC_WAKEUP,
         calendar.timeInMillis,
@@ -591,21 +603,50 @@ fun scheduleNotification(context: Context, hour: Int, minute: Int) {
 }
 
 class NotificationReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context?, intent: android.content.Intent?) {
-        context?.let {
-            // Mostrar la notificación
-            mostrarNotificacion(
-                it,
-                "Recordatorio",
-                "¡Es hora de tu recordatorio!"
-            )
+    override fun onReceive(context: Context, intent: Intent?) {
+        val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        val enabled = prefs.getBoolean("notifications_enabled", false)
+        val hour = prefs.getInt("notification_hour", 9)
+        val minute = prefs.getInt("notification_minute", 0)
 
-            // Reprogramar para el día siguiente
-            val hour = intent?.getIntExtra("HOUR", 9) ?: 9
-            val minute = intent?.getIntExtra("MINUTE", 0) ?: 0
-            scheduleNotification(it, hour, minute)
-        }
+        if (!enabled) return
+
+        // Mostramos la notificación
+        mostrarNotificacion(
+            context,
+            "Recordatorio",
+            "¡Es hora de tu recordatorio!"
+        )
+
+        // Reprogramamos para mañana a la misma hora
+        scheduleNotification(context, hour, minute)
     }
 }
+
+
+fun cancelNotification(context: Context) {
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+    val intent = android.content.Intent(context, NotificationReceiver::class.java)
+
+    val pendingIntent = android.app.PendingIntent.getBroadcast(
+        context,
+        0,
+        intent,
+        android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+    )
+
+    alarmManager.cancel(pendingIntent)
+}
+
+fun isNotificationEnabled(context: Context): Boolean {
+    val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+    return prefs.getBoolean("notifications_enabled", false)
+}
+
+fun setNotificationEnabled(context: Context, enabled: Boolean) {
+    val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+    prefs.edit().putBoolean("notifications_enabled", enabled).apply()
+}
+
 
 
