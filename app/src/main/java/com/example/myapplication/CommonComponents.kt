@@ -238,5 +238,3 @@ fun calculoRaciones(aliemento: Int, ratio: Double, gramos: Int): Double{
     //Algoritmo para redondear a 0.5
     return round(calculo * 2) / 2
 }
-
-

@@ -779,6 +779,3 @@ fun setNotificationEnabled(context: Context, enabled: Boolean) {
     val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
     prefs.edit().putBoolean("notifications_enabled", enabled).apply()
 }
-
-
-
