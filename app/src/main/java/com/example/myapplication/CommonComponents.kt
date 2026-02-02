@@ -24,6 +24,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import kotlin.math.floor
 import kotlin.math.round
 
 // Caja que se encarga de mostrar el resultado (llamar a el)
@@ -219,6 +220,21 @@ fun pedirPermisoNotificaciones(activity: Activity) {
     }
 }
 
+//Funcion para el redondeo mas preciso
+fun redondear(valor: Double): Double {
+    val entero = floor(valor)
+    val decimal = valor - entero
+
+    return when{
+        //Si el decimal es pequeño truncamos
+        decimal < 0.35 -> entero
+        //Si el decimal esta en el medio redondeamos a 0.5
+        decimal < 0.65 -> entero + 0.5
+        //Si el decimal es alto subimos al siguiente entero
+        else -> entero + 1.0
+    }
+}
+
 //Función para la lógica del caluclo
 fun calculoAzucar(azucarActual: Int, azucarObjetivo: Int, factorSensibilidad: Int): Double {
     if (factorSensibilidad <= 0) return 0.0 //Evitamos la división por 0
@@ -227,14 +243,14 @@ fun calculoAzucar(azucarActual: Int, azucarObjetivo: Int, factorSensibilidad: In
     val calculo = ((azucarActual - azucarObjetivo).toDouble() /factorSensibilidad)
 
     //Algoritmo para redondear a 0.5
-    return round(calculo * 2) / 2
+    return redondear(calculo)
 }
 
 //Funcion para calcular las raciones
 fun calculoRaciones(aliemento: Int, ratio: Double, gramos: Int): Double{
     //Calculo de las raciones
-    val calculo = (gramos/aliemento) * ratio
+    val calculo = (gramos.toDouble()/aliemento.toDouble()) * ratio
 
     //Algoritmo para redondear a 0.5
-    return round(calculo * 2) / 2
+    return redondear(calculo)
 }

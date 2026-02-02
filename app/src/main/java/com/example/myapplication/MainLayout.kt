@@ -115,7 +115,7 @@ fun MainLayout(modifier: Modifier = Modifier,
                 // USAMOS EL VALOR NUMÉRICO DEL RATIO (ratioValorActual)
                 val ratio = viewModel.ratioValorActual.toDoubleOrNull() ?: 0.0
 
-                val gramos = viewModel.campoGramos.toIntOrNull() ?: 0
+                val gramos = viewModel.campoGramos.toDoubleOrNull()?.toInt() ?: 0
 
                 if (alimentoHC > 0) {
                     val resultadoDouble = calculoRaciones(alimentoHC, ratio, gramos)
@@ -127,7 +127,7 @@ fun MainLayout(modifier: Modifier = Modifier,
                     }
                     textoResultado = "Has de pincharte $resultado UI"
                 } else {
-                    textoResultado = "Selecciona un alimento válido"
+                    textoResultado = "No has de pincharte nada"
                 }
             },
             shape = RoundedCornerShape(50),
