@@ -2,9 +2,9 @@ package com.example.myapplication.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val primaryLight = Color(0xFF067BA9)
+val primaryLight = Color(0xFA61839F)
 val onPrimaryLight = Color(0xFFFFFFFF)
-val primaryContainerLight = Color(0xFF9AD8E8)
+val primaryContainerLight = Color(0xFFA8D3E0)
 val onPrimaryContainerLight = Color(0xFF000000)
 val secondaryLight = Color(0xFF4A6363)
 val onSecondaryLight = Color(0xFFFFFFFF)
@@ -13,7 +13,7 @@ val onSecondaryContainerLight = Color(0xFF324B4B)
 val tertiaryLight = Color(0xFF4C5F7C)
 val onTertiaryLight = Color(0xFFFFFFFF)
 val tertiaryContainerLight = Color(0xFFD3E3FF)
-val onTertiaryContainerLight = Color(0xFF61BEED)
+val onTertiaryContainerLight = Color(0xFF567D8E)
 val errorLight = Color(0xFFBA1A1A)
 val onErrorLight = Color(0xFFFFFFFF)
 val errorContainerLight = Color(0xFFFFDAD6)
