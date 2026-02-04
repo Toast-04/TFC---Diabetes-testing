@@ -783,6 +783,8 @@ fun BajarAzucarScreen(viewModel: MainViewModel,
                     //Lógica del botón
                     val sensibilidad = viewModel.factorSensibilidad
                     val objetivo = azucarObjetivo
+                    val actual = azucarActual
+
 
 
 
@@ -791,6 +793,9 @@ fun BajarAzucarScreen(viewModel: MainViewModel,
                         mostrarAviso = true
                     } else if (objetivo.isEmpty()){
                         mensajeError = "Por favor, introduce primero el azúcar objetivo"
+                        mostrarAviso = true
+                    }else if (actual.isEmpty()){
+                        mensajeError = "Por favor, introduce primero el azúcar actual"
                         mostrarAviso = true
                     } else {
                         val actual = azucarActual.toIntOrNull() ?: 0
@@ -835,10 +840,11 @@ fun BajarAzucarScreen(viewModel: MainViewModel,
                         onClick = {
                             mostrarAviso = false
                             // Solo navegamos si el error era por la sensibilidad (ajustes)
-                            if (mensajeError.contains("ajustes", ignoreCase = true)) {
+                            if (mensajeError.contains("configuralo", ignoreCase = true)) {
                                 navController.navigate("configuracion"){
                                     launchSingleTop = true
                                 }
+                            }else if(mensajeError.contains("objetivo", ignoreCase = true)){
                             }
                         }
                     ) {
