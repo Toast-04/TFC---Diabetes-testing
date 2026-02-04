@@ -209,4 +209,14 @@ class MainViewModel(
         totalAcumulado = 0.0
     }
 
+    //Funcion para resetear seleccion al cambiar entre pantallas
+    fun resetearSeleccion(){
+        tablaSeleccionada = ""
+        alimentoSeleccionado = ""
+        ratioSeleccionada = ""
+        campoGramos = ""
+        hcSeleccionado = 0
+        totalAcumulado = 0.0
+    }
+
 }

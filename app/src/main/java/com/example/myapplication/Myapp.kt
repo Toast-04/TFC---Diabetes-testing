@@ -99,7 +99,7 @@ fun MyApp(
                         startDestination = "main",
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        composable("main") { MainLayout(viewModel = viewModel) }
+                        composable("main") { MainLayout(viewModel = viewModel, navController = navController) }
                         composable("configuracion") {
                             ConfiguracionScreen(
                                 viewModel = viewModel,
@@ -112,9 +112,9 @@ fun MyApp(
                             )
                         }
                         composable("notificaciones") { NotificacionesScreen(viewModel = viewModel, navController = navController, context = LocalContext.current)}
-                        composable("modo_receta") { ModoRecetaScreen(viewModel = viewModel)}
+                        composable("modo_receta") { ModoRecetaScreen(viewModel = viewModel, navController = navController)}
                         composable("bajar_azucar") {
-                            BajarAzucarScreen(viewModel = viewModel) }
+                            BajarAzucarScreen(viewModel = viewModel, navController = navController) }
                     }
 
                 }

@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,20 +10,41 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+
 // Layout principal de la app
 @Composable
 fun MainLayout(modifier: Modifier = Modifier,
-               viewModel: MainViewModel //<-- Parametro nuevo para el ViewModel
+               viewModel: MainViewModel, //<-- Parametro nuevo para el ViewModel
+               navController: NavController
 ) {
+
+    //Resetamos las selecciones al cargar otra pantalla
+    LaunchedEffect(Unit) {
+        viewModel.resetearSeleccion()
+    }
+
+    val focusManager = LocalFocusManager.current
 
     var textoResultado by remember { mutableStateOf("") }
     //La variables que aqui habian ahora son innecesarias ya que van en el viewmodel
 
-    Box(modifier = Modifier.fillMaxSize()){
+    var avisoError by remember { mutableStateOf(false) }
+
+
+    Box(modifier = Modifier.fillMaxSize()
+        //Detector de gestos para quitar el foco del teclado
+        .pointerInput(Unit){
+            detectTapGestures(onTap = {
+                focusManager.clearFocus()
+            })
+        }){
 
         // Interior de la pantalla principal
         Column(
@@ -113,25 +135,30 @@ fun MainLayout(modifier: Modifier = Modifier,
             // Boton para hacer la operacion
             Button(
                 onClick = {
-                    // USAMOS EL HC QUE YA BUSCÓ EL VIEWMODEL
-                    val alimentoHC = viewModel.hcSeleccionado
+                    // Obtenemos el valor de la ratio como texto desde el ViewModel
+                    val ratioTexto = viewModel.ratioValorActual
 
-                    // USAMOS EL VALOR NUMÉRICO DEL RATIO (ratioValorActual)
-                    val ratio = viewModel.ratioValorActual.toDoubleOrNull() ?: 0.0
-
-                    val gramos = viewModel.campoGramos.toDoubleOrNull()?.toInt() ?: 0
-
-                    if (alimentoHC > 0) {
-                        val resultadoDouble = calculoRaciones(alimentoHC, ratio, gramos)
-
-                        val resultado = if (resultadoDouble % 1.0 == 0.0) {
-                            resultadoDouble.toInt().toString()
-                        } else {
-                            resultadoDouble.toString()
-                        }
-                        textoResultado = "Has de pincharte $resultado UI"
+                    // Validamos si está vacía o es "0" antes de hacer nada
+                    if (ratioTexto.isEmpty() || ratioTexto == "0" || ratioTexto == "0.0") {
+                        avisoError = true // Esto dispara el AlertDialog
                     } else {
-                        textoResultado = "No has de pincharte nada"
+                        // Si existe la ratio, procedemos con el cálculo normal
+                        val alimentoHC = viewModel.hcSeleccionado
+                        val ratio = ratioTexto.toDoubleOrNull() ?: 0.0
+                        val gramos = viewModel.campoGramos.toDoubleOrNull()?.toInt() ?: 0
+
+                        if (alimentoHC > 0) {
+                            val resultadoDouble = calculoRaciones(alimentoHC, ratio, gramos)
+
+                            val resultado = if (resultadoDouble % 1.0 == 0.0) {
+                                resultadoDouble.toInt().toString()
+                            } else {
+                                resultadoDouble.toString()
+                            }
+                            textoResultado = "Has de pincharte $resultado UI"
+                        } else {
+                            textoResultado = "Selecciona un alimento"
+                        }
                     }
                 },
                 shape = RoundedCornerShape(50),
@@ -139,6 +166,32 @@ fun MainLayout(modifier: Modifier = Modifier,
             ) {
                 Text("OK")
             }
+
+            if (avisoError){
+                AlertDialog(
+                    onDismissRequest = { avisoError = false },
+                    title = { Text("Datos incompletos")},
+                    text = { Text("Por favor, configura la ratio primero o rellena los campos para obtener un resultado")},
+                    confirmButton = {
+                        Button (
+                            onClick = {
+                                avisoError = false
+                                navController.navigate("configuracion") {
+                                    launchSingleTop = true
+                                }
+                            }
+                        ) {
+                            Text ("Entendido")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { avisoError = false }) {
+                            Text("Cancelar")
+                        }
+                    }
+                )
+            }
+
 
             Spacer(modifier = Modifier.height(80.dp))
         }

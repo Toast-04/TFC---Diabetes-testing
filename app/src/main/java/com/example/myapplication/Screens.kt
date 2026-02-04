@@ -9,12 +9,15 @@ import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
@@ -22,8 +25,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -42,10 +47,19 @@ fun ConfiguracionScreen(
     modoAccesible: Boolean,
     onModoAccesibleChange: (Boolean) -> Unit
 ) {
+
+    val focusManager = LocalFocusManager.current
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp)
+            //Detector de gestos para quitar el foco del teclado
+            .pointerInput(Unit){
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            },
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // --- Título ---
@@ -280,6 +294,8 @@ fun NotificacionesScreen(viewModel: MainViewModel, navController: NavController,
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
 
+    val focusManager = LocalFocusManager.current
+
     // Estado del switch según SharedPreferences
     var isNotificationsActive by remember {
         mutableStateOf(prefs.getBoolean("notifications_enabled", false))
@@ -299,7 +315,13 @@ fun NotificacionesScreen(viewModel: MainViewModel, navController: NavController,
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp)
+            //Detector de gestos para quitar el foco del teclado
+            .pointerInput(Unit){
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            },
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
@@ -404,8 +426,14 @@ fun NotificacionesScreen(viewModel: MainViewModel, navController: NavController,
 
 @Composable
 fun ModoRecetaScreen(modifier: Modifier = Modifier,
-               viewModel: MainViewModel
+               viewModel: MainViewModel,
+                     navController: NavController
 ) {
+
+    //Resetamos las selecciones al cargar otra pantalla
+    LaunchedEffect(Unit) {
+        viewModel.resetearSeleccion()
+    }
 
     var textoResultado by remember { mutableStateOf("") }
 
@@ -415,13 +443,25 @@ fun ModoRecetaScreen(modifier: Modifier = Modifier,
     //Variable de estado para mostrar aviso
     var avisoBorrarReceta by remember { mutableStateOf(false) }
 
+    var avisoError by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()){
+
+    val focusManager = LocalFocusManager.current
+
+
+    Box(modifier = Modifier.fillMaxSize()
+        //Detector de gestos para quitar el foco del teclado
+        .pointerInput(Unit){
+            detectTapGestures(onTap = {
+                focusManager.clearFocus()
+            })
+        }){
     // Interior de la pantalla principal
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -525,21 +565,23 @@ fun ModoRecetaScreen(modifier: Modifier = Modifier,
                 // Boton para hacer la operacion
                 Button(
                     onClick = {
-                        // USAMOS EL HC QUE YA BUSCÓ EL VIEWMODEL
-                        val alimentoHC = viewModel.hcSeleccionado
+                        val ratio = viewModel.ratioValorActual // Obtenemos el valor del string
 
-                        // USAMOS EL VALOR NUMÉRICO DEL RATIO (ratioValorActual)
-                        val ratio = viewModel.ratioValorActual.toDoubleOrNull() ?: 0.0
-
-                        val gramos = viewModel.campoGramos.toIntOrNull() ?: 0
-
-                        if (alimentoHC > 0) {
-                            val resultadoDouble = calculoRaciones(alimentoHC, ratio, gramos)
-
-                            ultimoCalculo = resultadoDouble
-                            textoResultado = "Actual: ${if (resultadoDouble % 1.0 == 0.0) resultadoDouble.toInt() else resultadoDouble} UI"
+                        // Verificamos si la ratio para ese momento del día está vacía
+                        if (ratio.isEmpty() || ratio == "0") {
+                            avisoError = true
                         } else {
-                            textoResultado = "Selecciona un alimento válido"
+                            val alimentoHC = viewModel.hcSeleccionado
+                            val ratioNum = ratio.toDoubleOrNull() ?: 0.0
+                            val gramos = viewModel.campoGramos.toIntOrNull() ?: 0
+
+                            if (alimentoHC > 0) {
+                                val resultadoDouble = calculoRaciones(alimentoHC, ratioNum, gramos)
+                                ultimoCalculo = resultadoDouble
+                                textoResultado = "Actual: ${if (resultadoDouble % 1.0 == 0.0) resultadoDouble.toInt() else resultadoDouble} UI"
+                            } else {
+                                textoResultado = "Selecciona un alimento válido"
+                            }
                         }
                     },
                     shape = RoundedCornerShape(50),
@@ -610,6 +652,31 @@ fun ModoRecetaScreen(modifier: Modifier = Modifier,
                 )
             }
 
+            if (avisoError){
+                AlertDialog(
+                    onDismissRequest = { avisoError = false },
+                    title = { Text("Datos incompletos")},
+                    text = { Text("Por favor, configura la ratio primero o rellena los campos para obtener un resultado")},
+                    confirmButton = {
+                        Button (
+                            onClick = {
+                                avisoError = false
+                                navController.navigate("configuracion") {
+                                    launchSingleTop = true
+                                }
+                            }
+                        ) {
+                            Text ("Entendido")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { avisoError = false }) {
+                            Text("Cancelar")
+                        }
+                    }
+                )
+            }
+
             Spacer(modifier = Modifier.height(92.dp))
         }
 
@@ -637,7 +704,13 @@ fun ModoRecetaScreen(modifier: Modifier = Modifier,
 }
 
 @Composable
-fun BajarAzucarScreen(viewModel: MainViewModel) {
+fun BajarAzucarScreen(viewModel: MainViewModel,
+                      navController: NavController) {
+
+    //Resetamos las selecciones al cargar otra pantalla
+    LaunchedEffect(Unit) {
+        viewModel.resetearSeleccion()
+    }
     //Estados para los inputs de azucar
     var azucarActual by remember { mutableStateOf("") }
     var azucarObjetivo by remember { mutableStateOf("") }
@@ -645,13 +718,25 @@ fun BajarAzucarScreen(viewModel: MainViewModel) {
     //Estado para el resultado
     var textoResultado by remember { mutableStateOf("") }
 
+    val focusManager = LocalFocusManager.current
 
-    Box(modifier = Modifier.fillMaxSize()){
+    var mostrarAviso by remember { mutableStateOf(false) }
+    var mensajeError by remember { mutableStateOf("") }
+
+    Box(modifier = Modifier.fillMaxSize()
+        //Detector de gestos para quitar el foco del teclado
+        .pointerInput(Unit){
+            detectTapGestures(onTap = {
+                focusManager.clearFocus()
+            })
+        })
+    {
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -696,23 +781,26 @@ fun BajarAzucarScreen(viewModel: MainViewModel) {
             Button(
                 onClick = {
                     //Lógica del botón
-                    val actual = azucarActual.toIntOrNull() ?: 0
-                    val objetivo = azucarObjetivo.toIntOrNull() ?: 0
-                    val sensibilidad = viewModel.factorSensibilidad.toIntOrNull() ?: 0
+                    val sensibilidad = viewModel.factorSensibilidad
+                    val objetivo = azucarObjetivo
 
 
-                    //Calculamos !!HACER CONTROL POR SI FACTOR DE SENSIBILIDAD ESTA VACIO!!
-                    val resultadoDouble = calculoAzucar(actual, objetivo, sensibilidad)
 
-                    //Lógica visual, si acaba en .0 se muestra numero entero, si acaba .5 se muestra como decimal
-                    val resultado = if (resultadoDouble % 1.0 == 0.0) {
-                        resultadoDouble.toInt().toString()
+                    if (sensibilidad.isEmpty() || sensibilidad == "0") {
+                        mensajeError = "No has configurado el factor de sensibilidad, por favor configuralo"
+                        mostrarAviso = true
+                    } else if (objetivo.isEmpty()){
+                        mensajeError = "Por favor, introduce primero el azúcar objetivo"
+                        mostrarAviso = true
                     } else {
-                        resultadoDouble.toString()
-                    }
+                        val actual = azucarActual.toIntOrNull() ?: 0
+                        val objetivo = azucarObjetivo.toIntOrNull() ?: 0
+                        val sensibilidadNum = sensibilidad.toIntOrNull() ?: 0
 
-                    //Actualizamos el estado para que se vea en pantalla
-                    textoResultado = "Has de pincharte $resultado UI"
+                        val resultadoDouble = calculoAzucar(actual, objetivo, sensibilidadNum)
+                        val resultado = if (resultadoDouble % 1.0 == 0.0) resultadoDouble.toInt().toString() else resultadoDouble.toString()
+                        textoResultado = "Has de pincharte $resultado UI"
+                    }
 
                 },
                 shape = RoundedCornerShape(50),
@@ -736,6 +824,36 @@ fun BajarAzucarScreen(viewModel: MainViewModel) {
                 .align(Alignment.BottomStart)
                 .padding(start = 20.dp, bottom = 20.dp)
         )
+
+        if (mostrarAviso) {
+            AlertDialog(
+                onDismissRequest = { mostrarAviso = false },
+                title = { Text("Datos incompletos") },
+                text = { Text(mensajeError) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            mostrarAviso = false
+                            // Solo navegamos si el error era por la sensibilidad (ajustes)
+                            if (mensajeError.contains("ajustes", ignoreCase = true)) {
+                                navController.navigate("configuracion"){
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+                    ) {
+                        Text(if (mensajeError.contains("Ajustes")) "Ir a Ajustes" else "Entendido")
+                    }
+                },
+                dismissButton = {
+                    if (mensajeError.contains("ajustes")) {
+                        TextButton(onClick = { mostrarAviso = false }) {
+                            Text("Cancelar")
+                        }
+                    }
+                }
+            )
+        }
     }
 }
 
