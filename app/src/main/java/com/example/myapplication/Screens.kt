@@ -351,7 +351,7 @@ fun NotificacionesScreen(viewModel: MainViewModel, navController: NavController,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "Recordatorio:",
+                            text = "Recordatorio de insulina lenta:",
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.weight(0.4f)
                         )
