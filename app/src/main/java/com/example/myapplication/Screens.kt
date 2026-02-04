@@ -500,6 +500,8 @@ fun ModoRecetaScreen(modifier: Modifier = Modifier,
             // Caja de resultado
             ResultBox(textoResultado)
 
+            Spacer(modifier = Modifier.height(15.dp))
+
             //Mostrar el Total acumulado de la receta
             if (viewModel.totalAcumulado > 0) {
                 Text(
@@ -512,7 +514,7 @@ fun ModoRecetaScreen(modifier: Modifier = Modifier,
             }
 
 
-            Spacer(modifier = Modifier.weight(0.8f))
+            Spacer(modifier = Modifier.height(30.dp))
 
 
             Row(
@@ -569,13 +571,16 @@ fun ModoRecetaScreen(modifier: Modifier = Modifier,
                 }
             }
 
-            TextButton(
-                onClick = {
-                    avisoBorrarReceta = true
-                },
-                modifier = Modifier.padding(top = 8.dp)
-            ){
-                Text("Limpiar Receta")
+            if (viewModel.totalAcumulado != 0.0){
+                TextButton(
+                    onClick = {
+                        avisoBorrarReceta = true
+                    },
+                    modifier = Modifier.padding(top = 8.dp),
+
+                    ){
+                    Text("Limpiar Receta")
+                }
             }
 
             if (avisoBorrarReceta){

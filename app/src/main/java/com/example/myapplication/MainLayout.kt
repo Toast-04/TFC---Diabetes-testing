@@ -1,8 +1,10 @@
 package com.example.myapplication
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,9 +28,9 @@ fun MainLayout(modifier: Modifier = Modifier,
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 "Pantalla Principal",
@@ -100,13 +102,13 @@ fun MainLayout(modifier: Modifier = Modifier,
                 modifier = Modifier.width(250.dp)
             )
 
-            Spacer(modifier = Modifier.height(72.dp))
+            Spacer(modifier = Modifier.height(50.dp))
 
             // Caja de resultado
             ResultBox(textoResultado)
 
 
-            Spacer(modifier = Modifier.weight(0.8f))
+            Spacer(modifier = Modifier.height(30.dp))
 
             // Boton para hacer la operacion
             Button(
@@ -138,7 +140,7 @@ fun MainLayout(modifier: Modifier = Modifier,
                 Text("OK")
             }
 
-            Spacer(modifier = Modifier.height(92.dp))
+            Spacer(modifier = Modifier.height(80.dp))
         }
 
         BotonAyuda(infoText = "Guía de uso:\n" +
