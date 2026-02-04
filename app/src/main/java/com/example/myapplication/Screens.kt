@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -140,17 +141,23 @@ fun ConfiguracionScreen(
 
         // Ratio label
         item {
-            Box(
+            Row (
                 modifier = Modifier
                     .fillMaxWidth()
                     .requiredHeight(60.dp),
-                contentAlignment = Alignment.Center
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = "Ratio",
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
+
+                Spacer(Modifier.padding(horizontal = 8.dp))
+
+                BotonAyuda(infoText = "La ratio indica las unidades de insulina por cada ración de HC cubiertos por 1 unidad de insulina, se han de configurar para la mañana, noche y dia, puestos a que esta varia durante el dia",
+                    tamanoIcono = 24.dp)
             }
         }
 
@@ -165,7 +172,7 @@ fun ConfiguracionScreen(
                     modifier = Modifier
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text("Ver ratio", style = MaterialTheme.typography.bodyLarge)
                     Switch(
@@ -206,18 +213,25 @@ fun ConfiguracionScreen(
 
         // Factor de Sensibilidad label
         item {
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .requiredHeight(60.dp),
-                contentAlignment = Alignment.Center
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = "Factor de sensibilidad",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
+
+                Spacer(Modifier.padding(horizontal = 8.dp))
+
+                BotonAyuda(infoText = "El factor de sensibilidad es la cantidad de miligramos por decilitro (mg/dL) que disminuye la glucosa en sangre tras la administración de 1 unidad de insulina rápida, esto es util para poder saber la cantidad de insulina que se ha de suministrar a la hora de hacer una correción de azucar",
+                    tamanoIcono = 24.dp)
             }
+
         }
         // --- Switch para las Factor de sensibilidad ---
         item {
@@ -388,55 +402,6 @@ fun NotificacionesScreen(viewModel: MainViewModel, navController: NavController,
     }
 }
 
-
-@Composable
-fun InformacionScreen(onClose: () -> Unit) {
-    // Fondo semitransparente que bloquea interacciones
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f))
-            .clickable(
-                onClick = onClose,
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(20.dp))
-                .padding(24.dp)
-                .widthIn(max = 300.dp)
-                .clickable(
-                    onClick = {  },
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Información",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                "Mereketengue.",
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextButton(onClick = onClose) {
-                Text("Cerrar")
-            }
-        }
-    }
-}
-
 @Composable
 fun ModoRecetaScreen(modifier: Modifier = Modifier,
                viewModel: MainViewModel
@@ -447,171 +412,222 @@ fun ModoRecetaScreen(modifier: Modifier = Modifier,
     //Guardamos aqui el último calculo para poder sumarlo
     var ultimoCalculo by remember { mutableStateOf(0.0) }
 
+    //Variable de estado para mostrar aviso
+    var avisoBorrarReceta by remember { mutableStateOf(false) }
 
+
+    Box(modifier = Modifier.fillMaxSize()){
     // Interior de la pantalla principal
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        Text(
-            "Modo receta",
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        //DropDown Principal, selector de clase de alimentos
-        OptimizedDropdown(
-            value = viewModel.tablaSeleccionada.replace('_', ' '),
-            onValueChange = { nuevaTabla ->
-                //Cambia los '_' por espacios en el listado de tablas
-                val nombreReal = viewModel.listaTablas.find { it.replace('_', ' ') == nuevaTabla }
-                if (nombreReal != null) {
-                    viewModel.onTablaSeleccionada(nombreReal)
-                }
-            },
-            label = "Seleccionar Categoría",
-            options = viewModel.listaTablas.map {it.replace('_', ' ')},
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
-            // DropDown Secundario, selector de alimentos
-            OptimizedDropdown(
-                value = viewModel.alimentoSeleccionado,
-                onValueChange = { nuevoAlimento ->
-                    viewModel.onAlimentoSeleccionado(nuevoAlimento)
-                },
-                label = "Seleccionar Alimento",
-                options = viewModel.listaAlimentos, // <-- Esto se actualiza solo
-                modifier = Modifier.weight(1f),
-            )
-
-            // Selector ratio
-            OptimizedDropdown(
-                value = viewModel.ratioSeleccionada,
-                onValueChange = { nuevaRatio ->
-                    viewModel.onRatioSeleccionada(nuevaRatio)
-                },
-                label = "Selecciona el momento del dia",
-                options = viewModel.opcionesRatio,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Campo para la cantidad de gramps
-        OutlinedTextField(
-            value = viewModel.campoGramos,
-
-            // Formato adecuado para dentro de textfield *CAMBIAR SI QUIERES*
-            onValueChange = {
-                if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$")))
-                    viewModel.campoGramos = it
-            },
-            placeholder = { Text("Gramos") },
-            label = { Text("Gramos") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            singleLine = true,
-            shape = RoundedCornerShape(4.dp),
-            modifier = Modifier.width(250.dp)
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Caja de resultado
-        ResultBox(textoResultado)
-
-        //Mostrar el Total acumulado de la receta
-        if (viewModel.totalAcumulado > 0) {
             Text(
-                text = "Tu receta completa son : ${viewModel.totalAcumulado} UI",
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.onSurface,
+                "Modo receta",
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-        }
 
-
-        Spacer(modifier = Modifier.weight(0.8f))
-
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            // Boton para hacer la operacion
-            Button(
-                onClick = {
-                    // USAMOS EL HC QUE YA BUSCÓ EL VIEWMODEL
-                    val alimentoHC = viewModel.hcSeleccionado
-
-                    // USAMOS EL VALOR NUMÉRICO DEL RATIO (ratioValorActual)
-                    val ratio = viewModel.ratioValorActual.toDoubleOrNull() ?: 0.0
-
-                    val gramos = viewModel.campoGramos.toIntOrNull() ?: 0
-
-                    if (alimentoHC > 0) {
-                        val resultadoDouble = calculoRaciones(alimentoHC, ratio, gramos)
-
-                        ultimoCalculo = resultadoDouble
-                        textoResultado = "Actual: ${if (resultadoDouble % 1.0 == 0.0) resultadoDouble.toInt() else resultadoDouble} UI"
-                        } else {
-                           textoResultado = "Selecciona un alimento válido"
-                        }
-                },
-                shape = RoundedCornerShape(50),
-                modifier = Modifier.size(120.dp)
-            ) {
-                Text("OK")
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            //Boton +
-            Button(
-                onClick = {
-                    if(ultimoCalculo > 0) {
-                        viewModel.añadirAlTotal(ultimoCalculo)
-                        ultimoCalculo = 0.0
-                        textoResultado = "Añadido"
+            //DropDown Principal, selector de clase de alimentos
+            OptimizedDropdown(
+                value = viewModel.tablaSeleccionada.replace('_', ' '),
+                onValueChange = { nuevaTabla ->
+                    //Cambia los '_' por espacios en el listado de tablas
+                    val nombreReal = viewModel.listaTablas.find { it.replace('_', ' ') == nuevaTabla }
+                    if (nombreReal != null) {
+                        viewModel.onTablaSeleccionada(nombreReal)
                     }
-                          },
-                enabled = ultimoCalculo > 0,
-                shape = RoundedCornerShape(50),
-                modifier = Modifier.size(120.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                },
+                label = "Seleccionar Categoría",
+                options = viewModel.listaTablas.map {it.replace('_', ' ')},
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("+")
+                // DropDown Secundario, selector de alimentos
+                OptimizedDropdown(
+                    value = viewModel.alimentoSeleccionado,
+                    onValueChange = { nuevoAlimento ->
+                        viewModel.onAlimentoSeleccionado(nuevoAlimento)
+                    },
+                    label = "Seleccionar Alimento",
+                    options = viewModel.listaAlimentos, // <-- Esto se actualiza solo
+                    modifier = Modifier.weight(1f),
+                )
+
+                // Selector ratio
+                OptimizedDropdown(
+                    value = viewModel.ratioSeleccionada,
+                    onValueChange = { nuevaRatio ->
+                        viewModel.onRatioSeleccionada(nuevaRatio)
+                    },
+                    label = "Selecciona el momento del dia",
+                    options = viewModel.opcionesRatio,
+                    modifier = Modifier.weight(1f)
+                )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Campo para la cantidad de gramps
+            OutlinedTextField(
+                value = viewModel.campoGramos,
+
+                // Formato adecuado para dentro de textfield *CAMBIAR SI QUIERES*
+                onValueChange = {
+                    if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$")))
+                        viewModel.campoGramos = it
+                },
+                placeholder = { Text("Gramos") },
+                label = { Text("Gramos") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                singleLine = true,
+                shape = RoundedCornerShape(4.dp),
+                modifier = Modifier.width(250.dp)
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Caja de resultado
+            ResultBox(textoResultado)
+
+            //Mostrar el Total acumulado de la receta
+            if (viewModel.totalAcumulado > 0) {
+                Text(
+                    text = "Tu receta completa son : ${viewModel.totalAcumulado} UI",
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
+
+            Spacer(modifier = Modifier.weight(0.8f))
+
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                // Boton para hacer la operacion
+                Button(
+                    onClick = {
+                        // USAMOS EL HC QUE YA BUSCÓ EL VIEWMODEL
+                        val alimentoHC = viewModel.hcSeleccionado
+
+                        // USAMOS EL VALOR NUMÉRICO DEL RATIO (ratioValorActual)
+                        val ratio = viewModel.ratioValorActual.toDoubleOrNull() ?: 0.0
+
+                        val gramos = viewModel.campoGramos.toIntOrNull() ?: 0
+
+                        if (alimentoHC > 0) {
+                            val resultadoDouble = calculoRaciones(alimentoHC, ratio, gramos)
+
+                            ultimoCalculo = resultadoDouble
+                            textoResultado = "Actual: ${if (resultadoDouble % 1.0 == 0.0) resultadoDouble.toInt() else resultadoDouble} UI"
+                        } else {
+                            textoResultado = "Selecciona un alimento válido"
+                        }
+                    },
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier.size(120.dp)
+                ) {
+                    Text("OK")
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                //Boton +
+                Button(
+                    onClick = {
+                        if(ultimoCalculo > 0) {
+                            viewModel.añadirAlTotal(ultimoCalculo)
+                            ultimoCalculo = 0.0
+                            textoResultado = "Añadido"
+                        }
+                    },
+                    enabled = ultimoCalculo > 0,
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier.size(120.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text("+")
+                }
+            }
+
+            TextButton(
+                onClick = {
+                    avisoBorrarReceta = true
+                },
+                modifier = Modifier.padding(top = 8.dp)
+            ){
+                Text("Limpiar Receta")
+            }
+
+            if (avisoBorrarReceta){
+                AlertDialog(
+                    onDismissRequest = { avisoBorrarReceta = false },
+                    title = { Text("¿Borrar receta?") },
+                    text = { Text("Se eliminará todo lo agregado a la receta. ¿Estás seguro?") },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                // Aquí ejecutamos la limpieza real
+                                viewModel.limpiarTotal()
+                                textoResultado = ""
+                                ultimoCalculo = 0.0
+                                avisoBorrarReceta = false
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Borrar")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { avisoBorrarReceta = false }) {
+                            Text("Cancelar")
+                        }
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(92.dp))
         }
 
-        TextButton(
-            onClick = {
-                viewModel.limpiarTotal()
-                textoResultado = ""
-                ultimoCalculo = 0.0
-            },
-            modifier = Modifier.padding(top = 8.dp)
-        ){
-            Text("Limpiar Receta")
-        }
-
-        Spacer(modifier = Modifier.height(92.dp))
+        BotonAyuda(infoText = "Guía de uso:\n" +
+                "\n" +
+                "Seleccionar categoría: Elige el grupo de alimentos que quieres registrar (frutas, verduras, cereales, etc.).\n" +
+                "\n" +
+                "Seleccionar alimento: Escoge el alimento específico dentro de la categoría seleccionada.\n" +
+                "\n" +
+                "Cantidad: Indica la cantidad que vas a consumir.\n" +
+                "\n" +
+                "Momento del día: Selecciona si es desayuno, comida o cena.\n" +
+                "\n" +
+                "Boton OK: Pulsa el boton para obtener el resultado\n" +
+                "\n" +
+                "Boton +: Pulsa el boton para añadir el resultado a la receta" +
+                "\n" +
+                "Limpiar Receta: Pulsa el boton para limpiar la receta",
+            tamanoIcono = 50.dp,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 20.dp, bottom = 20.dp)
+        )
     }
 }
 
@@ -625,80 +641,96 @@ fun BajarAzucarScreen(viewModel: MainViewModel) {
     var textoResultado by remember { mutableStateOf("") }
 
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        Text(
-            "Corrección de glucemia",
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+    Box(modifier = Modifier.fillMaxSize()){
 
-        //Input para azucar actual
-        OutlinedTextField(
-            value = azucarActual,
-            onValueChange = {
-                if (it.isEmpty() || it.matches(Regex("^\\d+$"))) azucarActual = it
-            },
-            label = { Text("Azucar actual") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier.width(250.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        //Input para azucar objetivo
-        OutlinedTextField(
-            value = azucarObjetivo,
-            onValueChange = {
-                if (it.isEmpty() || it.matches(Regex("^\\d+$"))) azucarObjetivo = it
-            },
-            label = { Text("Azucar objetivo") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier.width(250.dp)
-        )
-
-        Spacer(modifier = Modifier.height(72.dp))
-
-        //Pasamos el estado al commponente visual
-        ResultBox(textoResultado)
-
-        Spacer(modifier = Modifier.weight(0.8f))
-
-        Button(
-            onClick = {
-                //Lógica del botón
-                val actual = azucarActual.toIntOrNull() ?: 0
-                val objetivo = azucarObjetivo.toIntOrNull() ?: 0
-                val sensibilidad = viewModel.factorSensibilidad.toIntOrNull() ?: 0
-
-
-                //Calculamos !!HACER CONTROL POR SI FACTOR DE SENSIBILIDAD ESTA VACIO!!
-                val resultadoDouble = calculoAzucar(actual, objetivo, sensibilidad)
-
-                //Lógica visual, si acaba en .0 se muestra numero entero, si acaba .5 se muestra como decimal
-                val resultado = if (resultadoDouble % 1.0 == 0.0) {
-                    resultadoDouble.toInt().toString()
-                } else {
-                    resultadoDouble.toString()
-                }
-
-                //Actualizamos el estado para que se vea en pantalla
-                textoResultado = "Has de pincharte $resultado UI"
-
-            },
-            shape = RoundedCornerShape(50),
-            modifier = Modifier.size(120.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
-            Text("OK")
+            Text(
+                "Corrección de glucemia",
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            //Input para azucar actual
+            OutlinedTextField(
+                value = azucarActual,
+                onValueChange = {
+                    if (it.isEmpty() || it.matches(Regex("^\\d+$"))) azucarActual = it
+                },
+                label = { Text("Azucar actual") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.width(250.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            //Input para azucar objetivo
+            OutlinedTextField(
+                value = azucarObjetivo,
+                onValueChange = {
+                    if (it.isEmpty() || it.matches(Regex("^\\d+$"))) azucarObjetivo = it
+                },
+                label = { Text("Azucar objetivo") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.width(250.dp)
+            )
+
+            Spacer(modifier = Modifier.height(72.dp))
+
+            //Pasamos el estado al commponente visual
+            ResultBox(textoResultado)
+
+            Spacer(modifier = Modifier.weight(0.8f))
+
+            Button(
+                onClick = {
+                    //Lógica del botón
+                    val actual = azucarActual.toIntOrNull() ?: 0
+                    val objetivo = azucarObjetivo.toIntOrNull() ?: 0
+                    val sensibilidad = viewModel.factorSensibilidad.toIntOrNull() ?: 0
+
+
+                    //Calculamos !!HACER CONTROL POR SI FACTOR DE SENSIBILIDAD ESTA VACIO!!
+                    val resultadoDouble = calculoAzucar(actual, objetivo, sensibilidad)
+
+                    //Lógica visual, si acaba en .0 se muestra numero entero, si acaba .5 se muestra como decimal
+                    val resultado = if (resultadoDouble % 1.0 == 0.0) {
+                        resultadoDouble.toInt().toString()
+                    } else {
+                        resultadoDouble.toString()
+                    }
+
+                    //Actualizamos el estado para que se vea en pantalla
+                    textoResultado = "Has de pincharte $resultado UI"
+
+                },
+                shape = RoundedCornerShape(50),
+                modifier = Modifier.size(120.dp)
+            ) {
+                Text("OK")
+            }
+
+            Spacer(modifier = Modifier.height(92.dp))
         }
 
-        Spacer(modifier = Modifier.height(92.dp))
+        BotonAyuda(infoText = "Guía de uso:\n" +
+                "\n" +
+                "Azúcar Actual: Introduce la cantidad de azucar actual en la sangre.\n" +
+                "\n" +
+                "Azúcar Objetivo: Introduce la cantidad de azucar objetivo en la sangre luego de la corrección.\n" +
+                "\n" +
+                "Boton OK: Pulsa el boton para obtener el resultado\n",
+            tamanoIcono = 50.dp,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 20.dp, bottom = 20.dp)
+        )
     }
 }
 
@@ -747,7 +779,7 @@ class NotificationReceiver : BroadcastReceiver() {
         mostrarNotificacion(
             context,
             "Recordatorio",
-            "¡Es hora de tu recordatorio!"
+            "Son las: " + hour + ":" + minute + " es hora de pincharse la insulina lenta"
         )
 
         // Reprogramamos para mañana a la misma hora

@@ -1,6 +1,7 @@
 package com.example.myapplication
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -75,21 +76,9 @@ fun MyApp(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            horizontalArrangement = Arrangement.Absolute.Right,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Boton de icono para la informacion
-                            IconButton(
-                                onClick = { showInfo = !showInfo },
-                                modifier = Modifier.size(72.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.icono_interrogracion),
-                                    contentDescription = "Info",
-                                    modifier = Modifier.size(48.dp),
-                                    tint = MaterialTheme.colorScheme.onBackground
-                                )
-                            }
                             // Boton de menu desplegable
                             BotonMenuInferior(navController)
                         }
@@ -128,10 +117,6 @@ fun MyApp(
                             BajarAzucarScreen(viewModel = viewModel) }
                     }
 
-                    // Overlay de informacion
-                    if (showInfo) {
-                        InformacionScreen(onClose = { showInfo = false })
-                    }
                 }
             }
         }

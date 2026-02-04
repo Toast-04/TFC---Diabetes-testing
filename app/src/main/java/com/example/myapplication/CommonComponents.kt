@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -253,4 +254,35 @@ fun calculoRaciones(aliemento: Int, ratio: Double, gramos: Int): Double{
 
     //Algoritmo para redondear a 0.5
     return redondear(calculo)
+}
+
+@Composable
+fun BotonAyuda(infoText: String,
+               tamanoIcono: Dp = 24.dp,
+               modifier: Modifier = Modifier
+){
+    var showDialog by remember { mutableStateOf(false) }
+
+    IconButton(onClick = { showDialog = true },
+        modifier = modifier.size(tamanoIcono + 8.dp)) {
+        Icon(
+            painter = painterResource(id = R.drawable.icono_interrogracion),
+            contentDescription = "Ayuda",
+            tint = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.size(tamanoIcono)
+            )
+    }
+    if (showDialog){
+        AlertDialog(
+            onDismissRequest = { showDialog = false},
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cerrar")
+                }
+            },
+            title = { Text("Información") },
+            text = { Text(infoText)
+            }
+        )
+    }
 }

@@ -20,122 +20,142 @@ fun MainLayout(modifier: Modifier = Modifier,
     var textoResultado by remember { mutableStateOf("") }
     //La variables que aqui habian ahora son innecesarias ya que van en el viewmodel
 
-    // Interior de la pantalla principal
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        Text(
-            "Pantalla Principal",
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+    Box(modifier = Modifier.fillMaxSize()){
 
-        //DropDown Principal, selector de clase de alimentos
-        OptimizedDropdown(
-            value = viewModel.tablaSeleccionada.replace('_', ' '),
-            onValueChange = { nuevaTabla ->
-                //Cambia los '_' por espacios en el listado de tablas
-                val nombreReal = viewModel.listaTablas.find { it.replace('_', ' ') == nuevaTabla }
-                if (nombreReal != null) {
-                    viewModel.onTablaSeleccionada(nombreReal)
-                }
-            },
-            label = "Seleccionar Categoría",
-            options = viewModel.listaTablas.map {it.replace('_', ' ')},
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        // Interior de la pantalla principal
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
-            // DropDown Secundario, selector de alimentos
-            OptimizedDropdown(
-                value = viewModel.alimentoSeleccionado,
-                onValueChange = { nuevoAlimento ->
-                    viewModel.onAlimentoSeleccionado(nuevoAlimento)
-                },
-                label = "Seleccionar Alimento",
-                options = viewModel.listaAlimentos, // <-- Esto se actualiza solo
-                modifier = Modifier.weight(1f),
+            Text(
+                "Pantalla Principal",
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // Selector ratio
+            //DropDown Principal, selector de clase de alimentos
             OptimizedDropdown(
-                value = viewModel.ratioSeleccionada,
-                onValueChange = { nuevaRatio ->
-                    viewModel.onRatioSeleccionada(nuevaRatio)
-                },
-                label = "Selecciona el momento del dia",
-                options = viewModel.opcionesRatio,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Campo para la cantidad de gramps
-        OutlinedTextField(
-            value = viewModel.campoGramos,
-
-            // Formato adecuado para dentro de textfield *CAMBIAR SI QUIERES*
-            onValueChange = {
-                if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$")))
-                    viewModel.campoGramos = it
-            },
-            placeholder = { Text("Gramos") },
-            label = { Text("Gramos") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            singleLine = true,
-            shape = RoundedCornerShape(4.dp),
-            modifier = Modifier.width(250.dp)
-        )
-
-        Spacer(modifier = Modifier.height(72.dp))
-
-        // Caja de resultado
-        ResultBox(textoResultado)
-
-
-        Spacer(modifier = Modifier.weight(0.8f))
-
-        // Boton para hacer la operacion
-        Button(
-            onClick = {
-                // USAMOS EL HC QUE YA BUSCÓ EL VIEWMODEL
-                val alimentoHC = viewModel.hcSeleccionado
-
-                // USAMOS EL VALOR NUMÉRICO DEL RATIO (ratioValorActual)
-                val ratio = viewModel.ratioValorActual.toDoubleOrNull() ?: 0.0
-
-                val gramos = viewModel.campoGramos.toDoubleOrNull()?.toInt() ?: 0
-
-                if (alimentoHC > 0) {
-                    val resultadoDouble = calculoRaciones(alimentoHC, ratio, gramos)
-
-                    val resultado = if (resultadoDouble % 1.0 == 0.0) {
-                        resultadoDouble.toInt().toString()
-                    } else {
-                        resultadoDouble.toString()
+                value = viewModel.tablaSeleccionada.replace('_', ' '),
+                onValueChange = { nuevaTabla ->
+                    //Cambia los '_' por espacios en el listado de tablas
+                    val nombreReal = viewModel.listaTablas.find { it.replace('_', ' ') == nuevaTabla }
+                    if (nombreReal != null) {
+                        viewModel.onTablaSeleccionada(nombreReal)
                     }
-                    textoResultado = "Has de pincharte $resultado UI"
-                } else {
-                    textoResultado = "No has de pincharte nada"
-                }
-            },
-            shape = RoundedCornerShape(50),
-            modifier = Modifier.size(120.dp)
-        ) {
-            Text("OK")
+                },
+                label = "Seleccionar Categoría",
+                options = viewModel.listaTablas.map {it.replace('_', ' ')},
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // DropDown Secundario, selector de alimentos
+                OptimizedDropdown(
+                    value = viewModel.alimentoSeleccionado,
+                    onValueChange = { nuevoAlimento ->
+                        viewModel.onAlimentoSeleccionado(nuevoAlimento)
+                    },
+                    label = "Seleccionar Alimento",
+                    options = viewModel.listaAlimentos, // <-- Esto se actualiza solo
+                    modifier = Modifier.weight(1f),
+                )
+
+                // Selector ratio
+                OptimizedDropdown(
+                    value = viewModel.ratioSeleccionada,
+                    onValueChange = { nuevaRatio ->
+                        viewModel.onRatioSeleccionada(nuevaRatio)
+                    },
+                    label = "Selecciona el momento del dia",
+                    options = viewModel.opcionesRatio,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Campo para la cantidad de gramps
+            OutlinedTextField(
+                value = viewModel.campoGramos,
+
+                // Formato adecuado para dentro de textfield *CAMBIAR SI QUIERES*
+                onValueChange = {
+                    if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$")))
+                        viewModel.campoGramos = it
+                },
+                placeholder = { Text("Gramos") },
+                label = { Text("Gramos") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                singleLine = true,
+                shape = RoundedCornerShape(4.dp),
+                modifier = Modifier.width(250.dp)
+            )
+
+            Spacer(modifier = Modifier.height(72.dp))
+
+            // Caja de resultado
+            ResultBox(textoResultado)
+
+
+            Spacer(modifier = Modifier.weight(0.8f))
+
+            // Boton para hacer la operacion
+            Button(
+                onClick = {
+                    // USAMOS EL HC QUE YA BUSCÓ EL VIEWMODEL
+                    val alimentoHC = viewModel.hcSeleccionado
+
+                    // USAMOS EL VALOR NUMÉRICO DEL RATIO (ratioValorActual)
+                    val ratio = viewModel.ratioValorActual.toDoubleOrNull() ?: 0.0
+
+                    val gramos = viewModel.campoGramos.toDoubleOrNull()?.toInt() ?: 0
+
+                    if (alimentoHC > 0) {
+                        val resultadoDouble = calculoRaciones(alimentoHC, ratio, gramos)
+
+                        val resultado = if (resultadoDouble % 1.0 == 0.0) {
+                            resultadoDouble.toInt().toString()
+                        } else {
+                            resultadoDouble.toString()
+                        }
+                        textoResultado = "Has de pincharte $resultado UI"
+                    } else {
+                        textoResultado = "No has de pincharte nada"
+                    }
+                },
+                shape = RoundedCornerShape(50),
+                modifier = Modifier.size(120.dp)
+            ) {
+                Text("OK")
+            }
+
+            Spacer(modifier = Modifier.height(92.dp))
         }
 
-        Spacer(modifier = Modifier.height(92.dp))
+        BotonAyuda(infoText = "Guía de uso:\n" +
+                "\n" +
+                "Seleccionar categoría: Elige el grupo de alimentos que quieres registrar (frutas, verduras, cereales, etc.).\n" +
+                "\n" +
+                "Seleccionar alimento: Escoge el alimento específico dentro de la categoría seleccionada.\n" +
+                "\n" +
+                "Cantidad: Indica la cantidad que vas a consumir.\n" +
+                "\n" +
+                "Momento del día: Selecciona si es desayuno, comida o cena.\n" +
+                "\n" +
+                "Boton OK: Pulsa el boton para obtener el resultado\n",
+                 tamanoIcono = 50.dp,
+                 modifier = Modifier
+                     .align(Alignment.BottomStart)
+                     .padding(start = 20.dp, bottom = 20.dp)
+            )
     }
 }
