@@ -206,7 +206,7 @@ fun MainLayout(modifier: Modifier = Modifier,
                 "\n" +
                 "Momento del día: Selecciona si es desayuno, comida o cena.\n" +
                 "\n" +
-                "Boton OK: Pulsa el boton para obtener el resultado\n",
+                "Boton OK: Pulsa el botón para obtener el resultado\n",
                  tamanoIcono = 50.dp,
                  modifier = Modifier
                      .align(Alignment.BottomStart)

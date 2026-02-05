@@ -170,7 +170,7 @@ fun ConfiguracionScreen(
 
                 Spacer(Modifier.padding(horizontal = 8.dp))
 
-                BotonAyuda(infoText = "La ratio indica las unidades de insulina por cada ración de HC cubiertos por 1 unidad de insulina, se han de configurar para la mañana, noche y dia, puestos a que esta varia durante el dia",
+                BotonAyuda(infoText = "La ratio indica las unidades de insulina por cada ración de HC cubiertos por 1 unidad de insulina, se han de configurar para la mañana, noche y dia, puestos a que esta varía durante el día",
                     tamanoIcono = 24.dp)
             }
         }
@@ -242,7 +242,7 @@ fun ConfiguracionScreen(
 
                 Spacer(Modifier.padding(horizontal = 8.dp))
 
-                BotonAyuda(infoText = "El factor de sensibilidad es la cantidad de miligramos por decilitro (mg/dL) que disminuye la glucosa en sangre tras la administración de 1 unidad de insulina rápida, esto es util para poder saber la cantidad de insulina que se ha de suministrar a la hora de hacer una correción de azucar",
+                BotonAyuda(infoText = "El factor de sensibilidad es la cantidad de miligramos por decilitro (mg/dL) que disminuye la glucosa en sangre tras la administración de 1 unidad de insulina rápida, esto es útil para poder saber la cantidad de insulina que se ha de suministrar a la hora de hacer una correción de azúcar",
                     tamanoIcono = 24.dp)
             }
 
